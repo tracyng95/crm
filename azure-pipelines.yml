@@ -14,39 +14,42 @@ pool:
   vmImage: 'ubuntu-latest'
 
 variables:
-  # === UPDATE THESE 3 VALUES ===
   SubscriptionId: '2c349f16-c9e8-4662-b25b-453d175bee12'
   ResourceGroupName: 'rg-cic-crm-prd'
   DataFactoryName: 'adf-cic-crm-prd-001'
 
+  # Change this if your package.json is inside a subfolder
+  AdfRootFolder: '.'     # ← Change to 'adf' or 'data-factory' if needed
+
 steps:
 - checkout: self
 
-- task: NodeTool@1
-  displayName: 'Install Node.js 20.x'
+# === Force Node.js 20 (This is the important fix) ===
+- task: UseNode@1
+  displayName: 'Use Node.js 20.x'
   inputs:
-    versionSpec: '20.x'
+    version: '20.x'
     checkLatest: true
 
 - task: Npm@1
   displayName: 'npm install'
   inputs:
     command: 'install'
-    workingDir: '$(Build.SourcesDirectory)'   # Change this if package.json is in a subfolder (e.g. adf/)
+    workingDir: '$(Build.SourcesDirectory)/$(AdfRootFolder)'
 
 - task: Npm@1
   displayName: 'Validate ADF Resources'
   inputs:
     command: 'custom'
-    customCommand: 'run build validate $(Build.SourcesDirectory) /subscriptions/$(SubscriptionId)/resourceGroups/$(ResourceGroupName)/providers/Microsoft.DataFactory/factories/$(DataFactoryName)'
-    workingDir: '$(Build.SourcesDirectory)'
+    customCommand: 'run build validate $(Build.SourcesDirectory)/$(AdfRootFolder) /subscriptions/$(SubscriptionId)/resourceGroups/$(ResourceGroupName)/providers/Microsoft.DataFactory/factories/$(DataFactoryName)'
+    workingDir: '$(Build.SourcesDirectory)/$(AdfRootFolder)'
 
 - task: Npm@1
   displayName: 'Export ARM Template'
   inputs:
     command: 'custom'
-    customCommand: 'run build export $(Build.SourcesDirectory) /subscriptions/$(SubscriptionId)/resourceGroups/$(ResourceGroupName)/providers/Microsoft.DataFactory/factories/$(DataFactoryName) $(Build.ArtifactStagingDirectory)/ArmTemplate'
-    workingDir: '$(Build.SourcesDirectory)'
+    customCommand: 'run build export $(Build.SourcesDirectory)/$(AdfRootFolder) /subscriptions/$(SubscriptionId)/resourceGroups/$(ResourceGroupName)/providers/Microsoft.DataFactory/factories/$(DataFactoryName) $(Build.ArtifactStagingDirectory)/ArmTemplate'
+    workingDir: '$(Build.SourcesDirectory)/$(AdfRootFolder)'
 
 - task: PublishPipelineArtifact@1
   displayName: 'Publish ARM Template Artifact'
