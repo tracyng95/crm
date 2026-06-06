@@ -15,9 +15,9 @@ pool:
 
 variables:
   SubscriptionId: '2c349f16-c9e8-4662-b25b-453d175bee12'
-  ResourceGroupName: 'rg-cic-crm-dev'     # ← Use your **Dev** RG here
-  DataFactoryName: 'adf-cic-crm-dev-001'  # ← Use your **Dev** Factory name here
-  AdfRootFolder: '.'                       # ← Very important
+  ResourceGroupName: 'rg-cic-crm-dev'           # ← Use your actual Dev RG
+  DataFactoryName: 'adf-cic-crm-dev-001'        # ← Use your actual Dev Factory
+  AdfRootFolder: '.'
 
 steps:
 - checkout: self
@@ -34,29 +34,30 @@ steps:
     workingDir: '$(Build.SourcesDirectory)/$(AdfRootFolder)'
 
 - task: Bash@3
-  displayName: '🔍 Validate ADF Resources'
+  displayName: 'Validate ADF'
   inputs:
     targetType: 'inline'
     script: |
-      echo "=== Running Validate ==="
       npm run build validate $(Build.SourcesDirectory)/$(AdfRootFolder) /subscriptions/$(SubscriptionId)/resourceGroups/$(ResourceGroupName)/providers/Microsoft.DataFactory/factories/$(DataFactoryName)
     workingDir: '$(Build.SourcesDirectory)/$(AdfRootFolder)'
 
 - task: Bash@3
-  displayName: '🔍 Export ARM Template + Debug'
+  displayName: 'Export ARM Template'
   inputs:
     targetType: 'inline'
     script: |
       echo "=== Starting Export ==="
-      mkdir -p $(Build.ArtifactStagingDirectory)/ArmTemplate
+      
+      OUTPUT_DIR=$(Build.ArtifactStagingDirectory)/ArmTemplate
+      mkdir -p $OUTPUT_DIR
       
       npm run build export \
         $(Build.SourcesDirectory)/$(AdfRootFolder) \
         /subscriptions/$(SubscriptionId)/resourceGroups/$(ResourceGroupName)/providers/Microsoft.DataFactory/factories/$(DataFactoryName) \
-        $(Build.ArtifactStagingDirectory)/ArmTemplate
+        $OUTPUT_DIR
       
-      echo "=== Export finished. Listing files ==="
-      ls -R $(Build.ArtifactStagingDirectory)/ArmTemplate || echo "No files generated!"
+      echo "=== Export completed. Files generated: ==="
+      ls -R $OUTPUT_DIR
     workingDir: '$(Build.SourcesDirectory)/$(AdfRootFolder)'
 
 - task: PublishPipelineArtifact@1
