@@ -43,25 +43,26 @@ steps:
     command: 'custom'
     customCommand: 'run build validate $(Build.SourcesDirectory)/$(AdfRootFolder) /subscriptions/$(SubscriptionId)/resourceGroups/$(ResourceGroupName)/providers/Microsoft.DataFactory/factories/$(DataFactoryName)'
     workingDir: '$(Build.SourcesDirectory)/$(AdfRootFolder)'
-      # === Export ARM Template ===
-      - task: Bash@3
-        displayName: 'Create ARM output folder'
-        inputs:
-          targetType: 'inline'
-          script: |
-            mkdir -p $(Build.ArtifactStagingDirectory)/ArmTemplate
+    
+# === Export ARM Template ===
+- task: Bash@3
+  displayName: 'Create ARM output folder'
+  inputs:
+    targetType: 'inline'
+    script: |
+      mkdir -p $(Build.ArtifactStagingDirectory)/ArmTemplate
 
-      - task: Npm@1
-        displayName: 'Export ARM Template'
-        inputs:
-          command: 'custom'
-          customCommand: 'run build export $(Build.SourcesDirectory)/$(AdfRootFolder) /subscriptions/$(SubscriptionId)/resourceGroups/$(ResourceGroupName)/providers/Microsoft.DataFactory/factories/$(DataFactoryName) $(Build.ArtifactStagingDirectory)/ArmTemplate'
-          workingDir: '$(Build.SourcesDirectory)/$(AdfRootFolder)'
+- task: Npm@1
+  displayName: 'Export ARM Template'
+  inputs:
+    command: 'custom'
+    customCommand: 'run build export $(Build.SourcesDirectory)/$(AdfRootFolder) /subscriptions/$(SubscriptionId)/resourceGroups/$(ResourceGroupName)/providers/Microsoft.DataFactory/factories/$(DataFactoryName) $(Build.ArtifactStagingDirectory)/ArmTemplate'
+    workingDir: '$(Build.SourcesDirectory)/$(AdfRootFolder)'
 
-      # === Publish Artifact ===
-      - task: PublishPipelineArtifact@1
-        displayName: 'Publish ARM Template Artifact'
-        inputs:
-          targetPath: '$(Build.ArtifactStagingDirectory)/ArmTemplate'
-          artifact: 'ArmTemplates'
-          publishLocation: 'pipeline'
+# === Publish Artifact ===
+- task: PublishPipelineArtifact@1
+  displayName: 'Publish ARM Template Artifact'
+  inputs:
+    targetPath: '$(Build.ArtifactStagingDirectory)/ArmTemplate'
+    artifact: 'ArmTemplates'
+    publishLocation: 'pipeline'
