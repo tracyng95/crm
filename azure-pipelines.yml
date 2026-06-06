@@ -15,9 +15,9 @@ pool:
 
 variables:
   SubscriptionId: '2c349f16-c9e8-4662-b25b-453d175bee12'
-  ResourceGroupName: 'rg-cic-crm-prd'      # Better to use Dev RG here
-  DataFactoryName: 'adf-cic-crm-prd-001'   # Change to your actual Dev factory name
-  AdfRootFolder: '.'                        # Confirm this matches your setup
+  ResourceGroupName: 'rg-cic-crm-prd'        # ← Change to your actual Dev RG if different
+  DataFactoryName: 'adf-cic-crm-prd-001'     # ← Change to your actual Dev Factory name
+  AdfRootFolder: '.'                          # Change to 'adf' if needed
 
 steps:
 - checkout: self
@@ -40,15 +40,23 @@ steps:
     customCommand: 'run build validate $(Build.SourcesDirectory)/$(AdfRootFolder) /subscriptions/$(SubscriptionId)/resourceGroups/$(ResourceGroupName)/providers/Microsoft.DataFactory/factories/$(DataFactoryName)'
     workingDir: '$(Build.SourcesDirectory)/$(AdfRootFolder)'
 
+# === Improved Export with Debug ===
 - task: Bash@3
   displayName: 'Export ARM Template'
   inputs:
     targetType: 'inline'
     script: |
+      echo "=== Starting Export ==="
+      mkdir -p $(Build.ArtifactStagingDirectory)/ArmTemplate
+      
       npm run build export \
         $(Build.SourcesDirectory)/$(AdfRootFolder) \
         /subscriptions/$(SubscriptionId)/resourceGroups/$(ResourceGroupName)/providers/Microsoft.DataFactory/factories/$(DataFactoryName) \
         $(Build.ArtifactStagingDirectory)/ArmTemplate
+      
+      echo "=== Export completed. Files generated: ==="
+      ls -R $(Build.ArtifactStagingDirectory)/ArmTemplate || echo "No files found!"
+    workingDir: '$(Build.SourcesDirectory)/$(AdfRootFolder)'
 
 - task: PublishPipelineArtifact@1
   displayName: 'Publish ARM Template Artifact'
