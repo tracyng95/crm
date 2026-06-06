@@ -15,9 +15,9 @@ pool:
 
 variables:
   # === UPDATE THESE 3 VALUES ===
-  SubscriptionId: 'xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx'
-  ResourceGroupName: 'your-dev-rg'
-  DataFactoryName: 'your-dev-adf-name'
+  SubscriptionId: '2c349f16-c9e8-4662-b25b-453d175bee12'
+  ResourceGroupName: 'rg-cic-crm-prd'
+  DataFactoryName: 'adf-cic-crm-prd-001'
 
 steps:
 - checkout: self
