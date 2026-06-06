@@ -56,7 +56,7 @@ stages:
             displayName: 'Deploy ARM Template to Prod Data Factory'
             inputs:
               deploymentScope: 'Resource Group'
-              azureResourceManagerConnection: 'Your-Azure-ServiceConnection'
+              azureResourceManagerConnection: 'ADF-DevOps-ServiceConnection'
               subscriptionId: '$(SubscriptionId)'
               action: 'Create Or Update Resource Group'
               resourceGroupName: '$(Prod_ResourceGroup)'
@@ -72,7 +72,7 @@ stages:
           - task: AzurePowerShell@5
             displayName: 'Start ADF Triggers (Post-Deployment)'
             inputs:
-              azureSubscription: 'Your-Azure-ServiceConnection'
+              azureSubscription: 'ADF-DevOps-ServiceConnection'
               scriptType: 'FilePath'
               scriptPath: '$(Build.SourcesDirectory)/scripts/PrePostDeploymentScript.Ver2.ps1'
               scriptArguments: '-armTemplate "$(Pipeline.Workspace)/ArmTemplates/ARMTemplateForFactory.json" -ResourceGroupName "$(Prod_ResourceGroup)" -DataFactoryName "$(Prod_DataFactory)" -predeployment $false -deleteDeployment $true'
