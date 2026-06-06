@@ -1,0 +1,15 @@
+{
+	"name": "adf-cic-crm-dev-001",
+	"properties": {
+		"trustModeClaimForMi": {
+			"value": "Disabled",
+			"editable": true
+		}
+	},
+	"location": "eastasia",
+	"identity": {
+		"type": "SystemAssigned",
+		"principalId": "aa47736f-08c0-4e78-9aab-8c353fcf1f16",
+		"tenantId": "c02b6a28-06d6-4dfb-bc40-588f84feafd8"
+	}
+}
