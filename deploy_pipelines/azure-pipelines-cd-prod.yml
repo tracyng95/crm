@@ -62,7 +62,7 @@ stages:
             inputs:
               azureSubscription: 'ADF-DevOps-ServiceConnection'   # ← Your service connection
               scriptType: 'FilePath'
-              scriptPath: '$(Build.SourcesDirectory)/scripts/PrePostDeploymentScript.Ver2.ps1'
+              scriptPath: '$(Build.SourcesDirectory)/deploy_pipelines/scripts/PrePostDeploymentScript.Ver2.ps1'
               scriptArguments: '-armTemplate "$(Pipeline.Workspace)/ArmTemplates/ARMTemplateForFactory.json" -ResourceGroupName "$(Prod_ResourceGroup)" -DataFactoryName "$(Prod_DataFactory)" -predeployment $true -deleteDeployment $false'
               azurePowerShellVersion: 'LatestVersion'
               pwsh: true
@@ -92,7 +92,7 @@ stages:
             inputs:
               azureSubscription: 'ADF-DevOps-ServiceConnection'
               scriptType: 'FilePath'
-              scriptPath: '$(Build.SourcesDirectory)/scripts/PrePostDeploymentScript.Ver2.ps1'
+              scriptPath: '$(Build.SourcesDirectory)/deploy_pipelines/scripts/PrePostDeploymentScript.Ver2.ps1'
               scriptArguments: '-armTemplate "$(Pipeline.Workspace)/ArmTemplates/ARMTemplateForFactory.json" -ResourceGroupName "$(Prod_ResourceGroup)" -DataFactoryName "$(Prod_DataFactory)" -predeployment $false -deleteDeployment $true'
               azurePowerShellVersion: 'LatestVersion'
               pwsh: true
