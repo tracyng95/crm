@@ -15,8 +15,8 @@ pool:
 
 variables:
   SubscriptionId: '2c349f16-c9e8-4662-b25b-453d175bee12'
-  ResourceGroupName: 'rg-cic-crm-prd'     # ← Use your **Dev** RG here
-  DataFactoryName: 'adf-cic-crm-prd-001'  # ← Use your **Dev** Factory name here
+  ResourceGroupName: 'rg-cic-crm-dev'     # ← Use your **Dev** RG here
+  DataFactoryName: 'adf-cic-crm-dev-001'  # ← Use your **Dev** Factory name here
   AdfRootFolder: '.'                       # ← Very important
 
 steps:
