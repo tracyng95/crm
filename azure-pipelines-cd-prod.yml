@@ -29,28 +29,30 @@ stages:
           steps:
           - checkout: self
 
-          # Download ARM Template from CI
+          # Download ARM Template from CI          
           # ============================================
           - task: DownloadPipelineArtifact@2
             displayName: 'Download ARM Template Artifact'
             inputs:
               buildType: 'specific'
               project: '$(System.TeamProject)'
-              definition: 'ADF-CI-Validate-and-Export'   # ← Exact name of your CI pipeline
+              definition: 'ADF-CI-Validate-and-Export'   # ← Make sure this matches your CI pipeline name exactly
               buildVersionToDownload: 'latest'
               artifactName: 'ArmTemplates'
               downloadPath: '$(Pipeline.Workspace)/ArmTemplates'
 
           # ============================================
-          # Debug: Show what was downloaded (helpful for first time)
+          # DEBUG: Show exact folder structure
           # ============================================
           - task: Bash@3
-            displayName: 'List downloaded ARM files'
+            displayName: '🔍 Debug - List Downloaded Files'
             inputs:
               targetType: 'inline'
               script: |
-                echo "=== Files downloaded ==="
-                ls -R $(Pipeline.Workspace)/ArmTemplates
+                echo "=== Workspace contents ==="
+                ls -R $(Pipeline.Workspace)
+                echo "=== ArmTemplates contents ==="
+                ls -R $(Pipeline.Workspace)/ArmTemplates || echo "ArmTemplates folder not found"
 
           # ============================================
           # Pre-deployment: Stop Triggers
