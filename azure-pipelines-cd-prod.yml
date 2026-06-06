@@ -1,0 +1,80 @@
+name: ADF-CD-Deploy-to-Production
+
+trigger: none                    # Trigger manually (recommended)
+
+resources:
+  pipelines:
+    - pipeline: 'ADF-CI-Pipeline'
+      source: 'ADF-CI-Validate-and-Export'   # ← Change to your actual CI pipeline name
+      trigger: 
+        branches:
+          include:
+            - develop
+
+variables:
+  Prod_ResourceGroup: 'rg-cic-crm-prd'
+  Prod_DataFactory: 'adf-cic-crm-prd-001'
+  SubscriptionId: '2c349f16-c9e8-4662-b25b-453d175bee12'
+
+stages:
+- stage: Deploy_Production
+  displayName: 'Deploy to Production'
+  jobs:
+  - deployment: DeployToProd
+    displayName: 'Deploy ADF to Production'
+    environment: 'Production'           # We will add approval here
+    strategy:
+      runOnce:
+        deploy:
+          steps:
+          - checkout: self
+
+          # Download the ARM template from CI pipeline
+          - task: DownloadPipelineArtifact@2
+            displayName: 'Download ARM Template Artifact'
+            inputs:
+              artifact: 'ArmTemplates'
+              path: '$(Pipeline.Workspace)/ArmTemplates'
+
+          # ============================================
+          # Pre-deployment: Stop running triggers
+          # ============================================
+          - task: AzurePowerShell@5
+            displayName: 'Stop ADF Triggers (Pre-Deployment)'
+            inputs:
+              azureSubscription: 'Your-Azure-ServiceConnection'   # ← Change this
+              scriptType: 'FilePath'
+              scriptPath: '$(Build.SourcesDirectory)/scripts/PrePostDeploymentScript.Ver2.ps1'
+              scriptArguments: '-armTemplate "$(Pipeline.Workspace)/ArmTemplates/ARMTemplateForFactory.json" -ResourceGroupName "$(Prod_ResourceGroup)" -DataFactoryName "$(Prod_DataFactory)" -predeployment $true -deleteDeployment $false'
+              azurePowerShellVersion: 'LatestVersion'
+              pwsh: true
+
+          # ============================================
+          # Deploy ARM Template to Production
+          # ============================================
+          - task: AzureResourceManagerTemplateDeployment@3
+            displayName: 'Deploy ARM Template to Prod Data Factory'
+            inputs:
+              deploymentScope: 'Resource Group'
+              azureResourceManagerConnection: 'Your-Azure-ServiceConnection'
+              subscriptionId: '$(SubscriptionId)'
+              action: 'Create Or Update Resource Group'
+              resourceGroupName: '$(Prod_ResourceGroup)'
+              location: 'East Asia'                    # Change if needed
+              templateLocation: 'Linked artifact'
+              csmFile: '$(Pipeline.Workspace)/ArmTemplates/ARMTemplateForFactory.json'
+              csmParametersFile: '$(Pipeline.Workspace)/ArmTemplates/ARMTemplateParametersForFactory.json'
+              overrideParameters: '-factoryName $(Prod_DataFactory)'
+
+          # ============================================
+          # Post-deployment: Start triggers again
+          # ============================================
+          - task: AzurePowerShell@5
+            displayName: 'Start ADF Triggers (Post-Deployment)'
+            inputs:
+              azureSubscription: 'Your-Azure-ServiceConnection'
+              scriptType: 'FilePath'
+              scriptPath: '$(Build.SourcesDirectory)/scripts/PrePostDeploymentScript.Ver2.ps1'
+              scriptArguments: '-armTemplate "$(Pipeline.Workspace)/ArmTemplates/ARMTemplateForFactory.json" -ResourceGroupName "$(Prod_ResourceGroup)" -DataFactoryName "$(Prod_DataFactory)" -predeployment $false -deleteDeployment $true'
+              azurePowerShellVersion: 'LatestVersion'
+              pwsh: true
