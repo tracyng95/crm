@@ -29,12 +29,19 @@ stages:
           steps:
           - checkout: self
 
-          # Download the ARM template from CI pipeline
+          # Download ARM Template from CI
           - task: DownloadPipelineArtifact@2
             displayName: 'Download ARM Template Artifact'
             inputs:
-              artifact: 'ArmTemplates'
-              path: '$(Pipeline.Workspace)/ArmTemplates'
+              buildType: 'specific'
+              project: '$(System.TeamProject)'
+              definition: 'ADF-CI-Validate-and-Export'   # ← Exact CI pipeline name
+              buildVersionToDownload: 'latest'
+              artifactName: 'ArmTemplates'
+              downloadPath: '$(Pipeline.Workspace)/ArmTemplates'
+              # Optional: If you want to use a specific build
+              # buildVersionToDownload: 'specific'
+              # buildId: '14'
 
           # ============================================
           # Pre-deployment: Stop running triggers
