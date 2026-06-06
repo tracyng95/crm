@@ -42,7 +42,7 @@ stages:
           - task: AzurePowerShell@5
             displayName: 'Stop ADF Triggers (Pre-Deployment)'
             inputs:
-              azureSubscription: 'Your-Azure-ServiceConnection'   # ← Change this
+              azureSubscription: 'ADF-DevOps-ServiceConnection'   # ← Change this
               scriptType: 'FilePath'
               scriptPath: '$(Build.SourcesDirectory)/scripts/PrePostDeploymentScript.Ver2.ps1'
               scriptArguments: '-armTemplate "$(Pipeline.Workspace)/ArmTemplates/ARMTemplateForFactory.json" -ResourceGroupName "$(Prod_ResourceGroup)" -DataFactoryName "$(Prod_DataFactory)" -predeployment $true -deleteDeployment $false'
