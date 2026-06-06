@@ -1,0 +1,67 @@
+name: ADF-CI-Validate-and-Export
+
+trigger:
+  branches:
+    include:
+      - develop
+
+pr:
+  branches:
+    include:
+      - develop
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+variables:
+  SubscriptionId: '2c349f16-c9e8-4662-b25b-453d175bee12'
+  ResourceGroupName: 'rg-cic-crm-prd'     # ← Use your **Dev** RG here
+  DataFactoryName: 'adf-cic-crm-prd-001'  # ← Use your **Dev** Factory name here
+  AdfRootFolder: '.'                       # ← Very important
+
+steps:
+- checkout: self
+
+- task: UseNode@1
+  displayName: 'Use Node.js 20.x'
+  inputs:
+    version: '20.x'
+
+- task: Npm@1
+  displayName: 'npm install'
+  inputs:
+    command: 'install'
+    workingDir: '$(Build.SourcesDirectory)/$(AdfRootFolder)'
+
+- task: Bash@3
+  displayName: '🔍 Validate ADF Resources'
+  inputs:
+    targetType: 'inline'
+    script: |
+      echo "=== Running Validate ==="
+      npm run build validate $(Build.SourcesDirectory)/$(AdfRootFolder) /subscriptions/$(SubscriptionId)/resourceGroups/$(ResourceGroupName)/providers/Microsoft.DataFactory/factories/$(DataFactoryName)
+    workingDir: '$(Build.SourcesDirectory)/$(AdfRootFolder)'
+
+- task: Bash@3
+  displayName: '🔍 Export ARM Template + Debug'
+  inputs:
+    targetType: 'inline'
+    script: |
+      echo "=== Starting Export ==="
+      mkdir -p $(Build.ArtifactStagingDirectory)/ArmTemplate
+      
+      npm run build export \
+        $(Build.SourcesDirectory)/$(AdfRootFolder) \
+        /subscriptions/$(SubscriptionId)/resourceGroups/$(ResourceGroupName)/providers/Microsoft.DataFactory/factories/$(DataFactoryName) \
+        $(Build.ArtifactStagingDirectory)/ArmTemplate
+      
+      echo "=== Export finished. Listing files ==="
+      ls -R $(Build.ArtifactStagingDirectory)/ArmTemplate || echo "No files generated!"
+    workingDir: '$(Build.SourcesDirectory)/$(AdfRootFolder)'
+
+- task: PublishPipelineArtifact@1
+  displayName: 'Publish ARM Template Artifact'
+  inputs:
+    targetPath: '$(Build.ArtifactStagingDirectory)/ArmTemplate'
+    artifact: 'ArmTemplates'
+    publishLocation: 'pipeline'
