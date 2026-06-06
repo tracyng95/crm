@@ -30,26 +30,35 @@ stages:
           - checkout: self
 
           # Download ARM Template from CI
+          # ============================================
           - task: DownloadPipelineArtifact@2
             displayName: 'Download ARM Template Artifact'
             inputs:
               buildType: 'specific'
               project: '$(System.TeamProject)'
-              definition: 'ADF-CI-Validate-and-Export'   # ← Exact CI pipeline name
+              definition: 'ADF-CI-Validate-and-Export'   # ← Exact name of your CI pipeline
               buildVersionToDownload: 'latest'
               artifactName: 'ArmTemplates'
               downloadPath: '$(Pipeline.Workspace)/ArmTemplates'
-              # Optional: If you want to use a specific build
-              # buildVersionToDownload: 'specific'
-              # buildId: '14'
 
           # ============================================
-          # Pre-deployment: Stop running triggers
+          # Debug: Show what was downloaded (helpful for first time)
+          # ============================================
+          - task: Bash@3
+            displayName: 'List downloaded ARM files'
+            inputs:
+              targetType: 'inline'
+              script: |
+                echo "=== Files downloaded ==="
+                ls -R $(Pipeline.Workspace)/ArmTemplates
+
+          # ============================================
+          # Pre-deployment: Stop Triggers
           # ============================================
           - task: AzurePowerShell@5
             displayName: 'Stop ADF Triggers (Pre-Deployment)'
             inputs:
-              azureSubscription: 'ADF-DevOps-ServiceConnection'   # ← Change this
+              azureSubscription: 'ADF-Prod-ServiceConnection'   # ← Your service connection
               scriptType: 'FilePath'
               scriptPath: '$(Build.SourcesDirectory)/scripts/PrePostDeploymentScript.Ver2.ps1'
               scriptArguments: '-armTemplate "$(Pipeline.Workspace)/ArmTemplates/ARMTemplateForFactory.json" -ResourceGroupName "$(Prod_ResourceGroup)" -DataFactoryName "$(Prod_DataFactory)" -predeployment $true -deleteDeployment $false'
