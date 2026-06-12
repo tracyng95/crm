@@ -3,12 +3,12 @@ name: ADF-CI-Validate-and-Export
 trigger:
   branches:
     include:
-      - develop
+      - main
 
 pr:
   branches:
     include:
-      - develop
+      - main
 
 pool:
   vmImage: 'ubuntu-latest'
