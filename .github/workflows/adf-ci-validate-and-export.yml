@@ -23,8 +23,8 @@ jobs:
       uses: actions/setup-node@v4
       with:
         node-version: 20.x
-        cache: 'npm'
-        cache-dependency-path: package-lock.json
+        cache: 'npm'                    # Keep caching for speed
+        cache-dependency-path: '**/package-lock.json'   # More flexible path
 
     - name: npm ci
       run: npm ci
@@ -42,8 +42,6 @@ jobs:
         OUTPUT_DIR="${{ github.workspace }}/ArmTemplate"
         rm -rf "$OUTPUT_DIR"
         mkdir -p "$OUTPUT_DIR"
-
-        echo "Output directory: $OUTPUT_DIR"
 
         npm run build export \
           . \
