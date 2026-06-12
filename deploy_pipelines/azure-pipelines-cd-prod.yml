@@ -9,7 +9,7 @@ resources:
       trigger: 
         branches:
           include:
-            - develop
+            - main
 
 variables:
   Prod_ResourceGroup: 'rg-cic-crm-prd'
