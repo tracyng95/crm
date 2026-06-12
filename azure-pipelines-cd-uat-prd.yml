@@ -1,0 +1,142 @@
+name: ADF-CD-Deploy-to-UAT-Prod
+
+trigger: none                    # We will trigger this manually or via CI
+
+resources:
+  pipelines:
+    - pipeline: 'ADF-CI'         # Name of your CI pipeline
+      source: 'ADF-CI-Validate-and-Export'   # ← Change to your actual CI pipeline name
+      trigger: 
+        branches:
+          include:
+            - develop
+
+variables:
+  # === Update these for your environments ===
+  UAT_ResourceGroup: 'rg-cic-crm-uat'
+  UAT_DataFactory: 'adf-cic-crm-uat-001'
+
+  Prod_ResourceGroup: 'rg-cic-crm-prd'
+  Prod_DataFactory: 'adf-cic-crm-prd-001'
+
+  SubscriptionId: '2c349f16-c9e8-4662-b25b-453d175bee12'
+
+stages:
+# ============================================
+# Stage 1: Deploy to UAT
+# ============================================
+- stage: Deploy_UAT
+  displayName: 'Deploy to UAT'
+  jobs:
+  - deployment: DeployUAT
+    displayName: 'Deploy ADF to UAT'
+    environment: 'UAT'
+    strategy:
+      runOnce:
+        deploy:
+          steps:
+          - checkout: self
+
+          # Download artifact from CI
+          - task: DownloadPipelineArtifact@2
+            displayName: 'Download ARM Template'
+            inputs:
+              artifact: 'ArmTemplates'
+              path: '$(Pipeline.Workspace)/ArmTemplates'
+
+          # Pre-deployment: Stop triggers
+          - task: AzurePowerShell@5
+            displayName: 'Stop Triggers (Pre-Deploy)'
+            inputs:
+              azureSubscription: 'Your-Azure-ServiceConnection'   # ← Change this
+              scriptType: 'FilePath'
+              scriptPath: '$(Build.SourcesDirectory)/scripts/PrePostDeploymentScript.Ver2.ps1'
+              scriptArguments: '-armTemplate "$(Pipeline.Workspace)/ArmTemplates/ARMTemplateForFactory.json" -ResourceGroupName "$(UAT_ResourceGroup)" -DataFactoryName "$(UAT_DataFactory)" -predeployment $true -deleteDeployment $false'
+              azurePowerShellVersion: 'LatestVersion'
+              pwsh: true
+
+          # Deploy ARM Template to UAT
+          - task: AzureResourceManagerTemplateDeployment@3
+            displayName: 'Deploy ARM to UAT Data Factory'
+            inputs:
+              deploymentScope: 'Resource Group'
+              azureResourceManagerConnection: 'Your-Azure-ServiceConnection'
+              subscriptionId: '$(SubscriptionId)'
+              action: 'Create Or Update Resource Group'
+              resourceGroupName: '$(UAT_ResourceGroup)'
+              location: 'East Asia'                    # Change if needed
+              templateLocation: 'Linked artifact'
+              csmFile: '$(Pipeline.Workspace)/ArmTemplates/ARMTemplateForFactory.json'
+              csmParametersFile: '$(Pipeline.Workspace)/ArmTemplates/ARMTemplateParametersForFactory.json'
+              overrideParameters: '-factoryName $(UAT_DataFactory)'
+
+          # Post-deployment: Start triggers
+          - task: AzurePowerShell@5
+            displayName: 'Start Triggers (Post-Deploy)'
+            inputs:
+              azureSubscription: 'Your-Azure-ServiceConnection'
+              scriptType: 'FilePath'
+              scriptPath: '$(Build.SourcesDirectory)/scripts/PrePostDeploymentScript.Ver2.ps1'
+              scriptArguments: '-armTemplate "$(Pipeline.Workspace)/ArmTemplates/ARMTemplateForFactory.json" -ResourceGroupName "$(UAT_ResourceGroup)" -DataFactoryName "$(UAT_DataFactory)" -predeployment $false -deleteDeployment $true'
+              azurePowerShellVersion: 'LatestVersion'
+              pwsh: true
+
+# ============================================
+# Stage 2: Deploy to Production (with Approval)
+# ============================================
+- stage: Deploy_Prod
+  displayName: 'Deploy to Production'
+  dependsOn: Deploy_UAT
+  condition: succeeded()
+  jobs:
+  - deployment: DeployProd
+    displayName: 'Deploy ADF to Prod'
+    environment: 'Production'
+    strategy:
+      runOnce:
+        deploy:
+          steps:
+          - checkout: self
+
+          - task: DownloadPipelineArtifact@2
+            displayName: 'Download ARM Template'
+            inputs:
+              artifact: 'ArmTemplates'
+              path: '$(Pipeline.Workspace)/ArmTemplates'
+
+          # Pre-deployment
+          - task: AzurePowerShell@5
+            displayName: 'Stop Triggers (Pre-Deploy)'
+            inputs:
+              azureSubscription: 'Your-Azure-ServiceConnection'
+              scriptType: 'FilePath'
+              scriptPath: '$(Build.SourcesDirectory)/scripts/PrePostDeploymentScript.Ver2.ps1'
+              scriptArguments: '-armTemplate "$(Pipeline.Workspace)/ArmTemplates/ARMTemplateForFactory.json" -ResourceGroupName "$(Prod_ResourceGroup)" -DataFactoryName "$(Prod_DataFactory)" -predeployment $true -deleteDeployment $false'
+              azurePowerShellVersion: 'LatestVersion'
+              pwsh: true
+
+          # Deploy to Prod
+          - task: AzureResourceManagerTemplateDeployment@3
+            displayName: 'Deploy ARM to Prod Data Factory'
+            inputs:
+              deploymentScope: 'Resource Group'
+              azureResourceManagerConnection: 'Your-Azure-ServiceConnection'
+              subscriptionId: '$(SubscriptionId)'
+              action: 'Create Or Update Resource Group'
+              resourceGroupName: '$(Prod_ResourceGroup)'
+              location: 'East Asia'
+              templateLocation: 'Linked artifact'
+              csmFile: '$(Pipeline.Workspace)/ArmTemplates/ARMTemplateForFactory.json'
+              csmParametersFile: '$(Pipeline.Workspace)/ArmTemplates/ARMTemplateParametersForFactory.json'
+              overrideParameters: '-factoryName $(Prod_DataFactory)'
+
+          # Post-deployment
+          - task: AzurePowerShell@5
+            displayName: 'Start Triggers (Post-Deploy)'
+            inputs:
+              azureSubscription: 'Your-Azure-ServiceConnection'
+              scriptType: 'FilePath'
+              scriptPath: '$(Build.SourcesDirectory)/scripts/PrePostDeploymentScript.Ver2.ps1'
+              scriptArguments: '-armTemplate "$(Pipeline.Workspace)/ArmTemplates/ARMTemplateForFactory.json" -ResourceGroupName "$(Prod_ResourceGroup)" -DataFactoryName "$(Prod_DataFactory)" -predeployment $false -deleteDeployment $true'
+              azurePowerShellVersion: 'LatestVersion'
+              pwsh: true

@@ -1,0 +1,80 @@
+name: ADF-CI-Validate-and-Export
+
+trigger:
+  branches:
+    include:
+      - main
+
+pr:
+  branches:
+    include:
+      - main
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+variables:
+  SubscriptionId: '2c349f16-c9e8-4662-b25b-453d175bee12'
+  ResourceGroupName: 'rg-cic-crm'           
+  DataFactoryName: 'adf-cic-crm-dev-001'    
+  AdfRootFolder: '.'
+
+steps:
+- checkout: self
+
+- task: UseNode@1
+  displayName: 'Use Node.js 20.x'
+  inputs:
+    version: '20.x'
+
+- task: Npm@1
+  displayName: 'npm install'
+  inputs:
+    command: 'install'
+    workingDir: '$(Build.SourcesDirectory)/$(AdfRootFolder)'
+
+- task: Bash@3
+  displayName: 'Validate ADF'
+  inputs:
+    targetType: 'inline'
+    script: |
+      npm run build validate $(Build.SourcesDirectory)/$(AdfRootFolder) /subscriptions/$(SubscriptionId)/resourceGroups/$(ResourceGroupName)/providers/Microsoft.DataFactory/factories/$(DataFactoryName)
+    workingDir: '$(Build.SourcesDirectory)/$(AdfRootFolder)'
+
+- task: Bash@3
+  displayName: 'Export ARM Template'
+  inputs:
+    targetType: 'inline'
+    script: |
+      echo "=== Starting Export ==="
+      
+      # Clean output directory
+      OUTPUT_DIR=$(Build.ArtifactStagingDirectory)/ArmTemplate
+      rm -rf $OUTPUT_DIR
+      mkdir -p $OUTPUT_DIR
+      
+      echo "Output directory: $OUTPUT_DIR"
+      echo "Root folder: $(Build.SourcesDirectory)/$(AdfRootFolder)"
+      
+      # Run export
+      npm run build export \
+        $(Build.SourcesDirectory)/$(AdfRootFolder) \
+        /subscriptions/$(SubscriptionId)/resourceGroups/$(ResourceGroupName)/providers/Microsoft.DataFactory/factories/$(DataFactoryName) \
+        $OUTPUT_DIR
+      
+      echo "=== Export completed. Listing files ==="
+      ls -laR $OUTPUT_DIR || echo "No files found!"
+      
+      # Extra safety: Copy any files if they were saved to wrong path
+      if [ -d "$(Build.SourcesDirectory)/home" ]; then
+        echo "Found misplaced files, copying them..."
+        cp -r $(Build.SourcesDirectory)/home/vsts/work/1/a/ArmTemplate/* $OUTPUT_DIR/ 2>/dev/null || true
+      fi
+    workingDir: '$(Build.SourcesDirectory)/$(AdfRootFolder)'
+
+- task: PublishPipelineArtifact@1
+  displayName: 'Publish ARM Template Artifact'
+  inputs:
+    targetPath: '$(Build.ArtifactStagingDirectory)/ArmTemplate'
+    artifact: 'ArmTemplates'
+    publishLocation: 'pipeline'
