@@ -1,15 +1,13 @@
-env:
-  ADF_ROOT_FOLDER: '.'   # Change if your ADF code is in a subfolder, e.g. 'ADF' or 'build'
-  
 name: ADF-CI-Validate-and-Export
 
 on:
   push:
-    branches:
-      - main
+    branches: [ main ]
   pull_request:
-    branches:
-      - main
+    branches: [ main ]
+
+env:
+  ADF_ROOT_FOLDER: '.'
 
 jobs:
   build:
@@ -19,27 +17,22 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v4
       with:
-        # Fetch full history if needed for any tags/versions
         fetch-depth: 0
 
     - name: Setup Node.js 20.x
       uses: actions/setup-node@v4
       with:
         node-version: 20.x
-        # Optional: cache npm dependencies for faster runs
         cache: 'npm'
-        cache-dependency-path: ${{ github.workspace }}/${{ env.ADF_ROOT_FOLDER }}/package-lock.json
+        cache-dependency-path: package-lock.json
 
-    - name: npm install
+    - name: npm ci
       run: npm ci
-      working-directory: ${{ github.workspace }}/${{ env.ADF_ROOT_FOLDER }}
 
     - name: Validate ADF
       run: |
-        npm run build validate \
-          ${{ github.workspace }}/${{ env.ADF_ROOT_FOLDER }} \
+        npm run build validate . \
           /subscriptions/${{ secrets.AZURE_SUBSCRIPTION_ID }}/resourceGroups/${{ secrets.AZURE_RESOURCE_GROUP }}/providers/Microsoft.DataFactory/factories/${{ secrets.AZURE_DATA_FACTORY_NAME }}
-      working-directory: ${{ github.workspace }}/${{ env.ADF_ROOT_FOLDER }}
 
     - name: Export ARM Template
       id: export
@@ -51,24 +44,17 @@ jobs:
         mkdir -p "$OUTPUT_DIR"
 
         echo "Output directory: $OUTPUT_DIR"
-        echo "Root folder: ${{ github.workspace }}/${{ env.ADF_ROOT_FOLDER }}"
 
         npm run build export \
-          ${{ github.workspace }}/${{ env.ADF_ROOT_FOLDER }} \
+          . \
           /subscriptions/${{ secrets.AZURE_SUBSCRIPTION_ID }}/resourceGroups/${{ secrets.AZURE_RESOURCE_GROUP }}/providers/Microsoft.DataFactory/factories/${{ secrets.AZURE_DATA_FACTORY_NAME }} \
           "$OUTPUT_DIR"
 
         echo "=== Export completed. Listing files ==="
         ls -laR "$OUTPUT_DIR" || echo "No files found!"
 
-        # Optional: safety copy if files appear elsewhere
-        if [ -d "${{ github.workspace }}/home" ]; then
-          echo "Found misplaced files, copying..."
-          cp -r ${{ github.workspace }}/home/vsts/work/*/a/ArmTemplate/* "$OUTPUT_DIR/" 2>/dev/null || true
-        fi
-
         echo "arm_template_path=$OUTPUT_DIR" >> $GITHUB_OUTPUT
-      working-directory: ${{ github.workspace }}/${{ env.ADF_ROOT_FOLDER }}
+      shell: bash
 
     - name: Publish ARM Template Artifact
       uses: actions/upload-artifact@v4
