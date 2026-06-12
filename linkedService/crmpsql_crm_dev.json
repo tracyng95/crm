@@ -1,0 +1,26 @@
+{
+	"name": "crmpsql_crm_dev",
+	"type": "Microsoft.DataFactory/factories/linkedservices",
+	"properties": {
+		"parameters": {
+			"database_name": {
+				"type": "string",
+				"defaultValue": "iclub"
+			}
+		},
+		"annotations": [],
+		"type": "AzurePostgreSql",
+		"version": "2.0",
+		"typeProperties": {
+			"server": "pg-cic-crm-dev-01.postgres.database.azure.com",
+			"port": "5432",
+			"database": "@{linkedService().database_name}",
+			"sslMode": 2,
+			"authenticationType": "SystemAssignedManagedIdentity"
+		},
+		"connectVia": {
+			"referenceName": "AutoResolveIntegrationRuntime",
+			"type": "IntegrationRuntimeReference"
+		}
+	}
+}
