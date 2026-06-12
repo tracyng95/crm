@@ -1,0 +1,64 @@
+name: ADF-CI-Validate-and-Export
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+env:
+  ADF_ROOT_FOLDER: '.'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    - name: Setup Node.js 20.x
+      uses: actions/setup-node@v4
+      with:
+        node-version: 20.x
+        cache: 'npm'
+        # cache-dependency-path: package-lock.json
+
+    - name: npm ci
+      run: npm ci
+
+    - name: Validate ADF
+      run: |
+        npm run build validate . \
+          /subscriptions/${{ secrets.AZURE_SUBSCRIPTION_ID }}/resourceGroups/${{ secrets.AZURE_RESOURCE_GROUP }}/providers/Microsoft.DataFactory/factories/${{ secrets.AZURE_DATA_FACTORY_NAME }}
+
+    - name: Export ARM Template
+      id: export
+      run: |
+        echo "=== Starting Export ==="
+
+        OUTPUT_DIR="${{ github.workspace }}/ArmTemplate"
+        rm -rf "$OUTPUT_DIR"
+        mkdir -p "$OUTPUT_DIR"
+
+        echo "Output directory: $OUTPUT_DIR"
+
+        npm run build export \
+          . \
+          /subscriptions/${{ secrets.AZURE_SUBSCRIPTION_ID }}/resourceGroups/${{ secrets.AZURE_RESOURCE_GROUP }}/providers/Microsoft.DataFactory/factories/${{ secrets.AZURE_DATA_FACTORY_NAME }} \
+          "$OUTPUT_DIR"
+
+        echo "=== Export completed. Listing files ==="
+        ls -laR "$OUTPUT_DIR" || echo "No files found!"
+
+        echo "arm_template_path=$OUTPUT_DIR" >> $GITHUB_OUTPUT
+      shell: bash
+
+    - name: Publish ARM Template Artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: ArmTemplates
+        path: ${{ steps.export.outputs.arm_template_path }}
+        retention-days: 30
