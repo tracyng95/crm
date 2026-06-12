@@ -1,3 +1,6 @@
+env:
+  ADF_ROOT_FOLDER: '.'   # Change if your ADF code is in a subfolder, e.g. 'ADF' or 'build'
+  
 name: ADF-CI-Validate-and-Export
 
 on:
