@@ -9,65 +9,67 @@ on:
       - main
 
 jobs:
-  validate-and-export:
+  build:
     runs-on: ubuntu-latest
 
-    env:
-      SUBSCRIPTION_ID: ${{ secrets.ADF_SUBSCRIPTION_ID }}          # Recommended: move to GitHub Secrets
-      RESOURCE_GROUP_NAME: 'rg-cic-crm'
-      DATA_FACTORY_NAME: 'adf-cic-crm-dev-001'
-      ADF_ROOT_FOLDER: '.'
-
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      with:
+        # Fetch full history if needed for any tags/versions
+        fetch-depth: 0
 
-      - name: Use Node.js 20.x
-        uses: actions/setup-node@v4
-        with:
-          node-version: 20
-          cache: 'npm'                    # Optional but recommended - speeds up install
+    - name: Setup Node.js 20.x
+      uses: actions/setup-node@v4
+      with:
+        node-version: 20.x
+        # Optional: cache npm dependencies for faster runs
+        cache: 'npm'
+        cache-dependency-path: ${{ github.workspace }}/${{ env.ADF_ROOT_FOLDER }}/package-lock.json
 
-      - name: npm install
-        run: npm ci                          # Use `ci` instead of `install` for CI reliability
-        working-directory: ${{ env.ADF_ROOT_FOLDER }}
+    - name: npm install
+      run: npm ci
+      working-directory: ${{ github.workspace }}/${{ env.ADF_ROOT_FOLDER }}
 
-      - name: Validate ADF
-        run: |
-          npm run build validate \
-            ${{ github.workspace }}/${{ env.ADF_ROOT_FOLDER }} \
-            /subscriptions/${{ env.SUBSCRIPTION_ID }}/resourceGroups/${{ env.RESOURCE_GROUP_NAME }}/providers/Microsoft.DataFactory/factories/${{ env.DATA_FACTORY_NAME }}
-        working-directory: ${{ env.ADF_ROOT_FOLDER }}
+    - name: Validate ADF
+      run: |
+        npm run build validate \
+          ${{ github.workspace }}/${{ env.ADF_ROOT_FOLDER }} \
+          /subscriptions/${{ secrets.AZURE_SUBSCRIPTION_ID }}/resourceGroups/${{ secrets.AZURE_RESOURCE_GROUP }}/providers/Microsoft.DataFactory/factories/${{ secrets.AZURE_DATA_FACTORY_NAME }}
+      working-directory: ${{ github.workspace }}/${{ env.ADF_ROOT_FOLDER }}
 
-      - name: Export ARM Template
-        run: |
-          echo "=== Starting Export ==="
+    - name: Export ARM Template
+      id: export
+      run: |
+        echo "=== Starting Export ==="
 
-          OUTPUT_DIR="${{ runner.temp }}/ArmTemplate"
-          rm -rf "$OUTPUT_DIR"
-          mkdir -p "$OUTPUT_DIR"
+        OUTPUT_DIR="${{ github.workspace }}/ArmTemplate"
+        rm -rf "$OUTPUT_DIR"
+        mkdir -p "$OUTPUT_DIR"
 
-          echo "Output directory: $OUTPUT_DIR"
-          echo "Root folder: ${{ github.workspace }}/${{ env.ADF_ROOT_FOLDER }}"
+        echo "Output directory: $OUTPUT_DIR"
+        echo "Root folder: ${{ github.workspace }}/${{ env.ADF_ROOT_FOLDER }}"
 
-          npm run build export \
-            ${{ github.workspace }}/${{ env.ADF_ROOT_FOLDER }} \
-            /subscriptions/${{ env.SUBSCRIPTION_ID }}/resourceGroups/${{ env.RESOURCE_GROUP_NAME }}/providers/Microsoft.DataFactory/factories/${{ env.DATA_FACTORY_NAME }} \
-            "$OUTPUT_DIR"
+        npm run build export \
+          ${{ github.workspace }}/${{ env.ADF_ROOT_FOLDER }} \
+          /subscriptions/${{ secrets.AZURE_SUBSCRIPTION_ID }}/resourceGroups/${{ secrets.AZURE_RESOURCE_GROUP }}/providers/Microsoft.DataFactory/factories/${{ secrets.AZURE_DATA_FACTORY_NAME }} \
+          "$OUTPUT_DIR"
 
-          echo "=== Export completed. Listing files ==="
-          ls -laR "$OUTPUT_DIR" || echo "No files found!"
+        echo "=== Export completed. Listing files ==="
+        ls -laR "$OUTPUT_DIR" || echo "No files found!"
 
-          # Safety copy for any edge-case path issues (rare in GitHub)
-          if [ -d "${{ github.workspace }}/home" ]; then
-            echo "Found misplaced files, copying..."
-            cp -r ${{ github.workspace }}/home/vsts/work/1/a/ArmTemplate/* "$OUTPUT_DIR/" 2>/dev/null || true
-          fi
-        working-directory: ${{ env.ADF_ROOT_FOLDER }}
+        # Optional: safety copy if files appear elsewhere
+        if [ -d "${{ github.workspace }}/home" ]; then
+          echo "Found misplaced files, copying..."
+          cp -r ${{ github.workspace }}/home/vsts/work/*/a/ArmTemplate/* "$OUTPUT_DIR/" 2>/dev/null || true
+        fi
 
-      - name: Publish ARM Template Artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: ArmTemplates
-          path: ${{ runner.temp }}/ArmTemplate
-          retention-days: 30
+        echo "arm_template_path=$OUTPUT_DIR" >> $GITHUB_OUTPUT
+      working-directory: ${{ github.workspace }}/${{ env.ADF_ROOT_FOLDER }}
+
+    - name: Publish ARM Template Artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: ArmTemplates
+        path: ${{ steps.export.outputs.arm_template_path }}
+        retention-days: 30
