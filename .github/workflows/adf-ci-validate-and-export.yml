@@ -3,58 +3,31 @@ name: ADF-CI-Validate-and-Export
 on:
   push:
     branches: [ main ]
-  pull_request:
-    branches: [ main ]
-
-env:
-  ADF_ROOT_FOLDER: '.'
+  # pull_request:
+  #   branches: [ main ]
 
 jobs:
   build:
     runs-on: ubuntu-latest
+    timeout-minutes: 20
 
     steps:
     - name: Checkout repository
       uses: actions/checkout@v4
+
+    - name: Export ARM Template (Official Microsoft Action)
+      uses: Azure/data-factory-export-action@v1
       with:
-        fetch-depth: 0
+        path: '.'                          # Root of your ADF JSON files
+        id: '/subscriptions/${{ secrets.AZURE_SUBSCRIPTION_ID }}/resourceGroups/${{ secrets.AZURE_RESOURCE_GROUP }}/providers/Microsoft.DataFactory/factories/${{ secrets.AZURE_DATA_FACTORY_NAME }}'
+        output: './ArmTemplate'            # Output folder
 
-    - name: Setup Node.js 20.x
-      uses: actions/setup-node@v4
-      with:
-        node-version: 20.x
-        cache: 'npm'                    # Keep caching for speed
-        cache-dependency-path: '**/package-lock.json'   # More flexible path
-
-    - name: npm ci
-      run: npm ci
-
-    - name: Validate ADF
-      run: |
-        npm run build validate . \
-          /subscriptions/${{ secrets.AZURE_SUBSCRIPTION_ID }}/resourceGroups/${{ secrets.AZURE_RESOURCE_GROUP }}/providers/Microsoft.DataFactory/factories/${{ secrets.AZURE_DATA_FACTORY_NAME }}
-
-    - name: Export ARM Template
-      id: export
-      run: |
-        echo "=== Starting Export ==="
-
-        OUTPUT_DIR="${{ github.workspace }}/ArmTemplate"
-        rm -rf "$OUTPUT_DIR"
-        mkdir -p "$OUTPUT_DIR"
-
-        npm run build export \
-          . \
-          /subscriptions/${{ secrets.AZURE_SUBSCRIPTION_ID }}/resourceGroups/${{ secrets.AZURE_RESOURCE_GROUP }}/providers/Microsoft.DataFactory/factories/${{ secrets.AZURE_DATA_FACTORY_NAME }} \
-          "$OUTPUT_DIR"
-
-        echo "=== Export completed. Listing output ==="
-        ls -laR "$OUTPUT_DIR" || echo "No output files!"
-      shell: bash
+    - name: List Exported Files
+      run: ls -laR ./ArmTemplate || echo "No files generated"
 
     - name: Publish ARM Template Artifact
       uses: actions/upload-artifact@v4
       with:
         name: ArmTemplates
-        path: ${{ steps.export.outputs.arm_template_path }}
+        path: ./ArmTemplate
         retention-days: 30
