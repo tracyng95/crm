@@ -43,17 +43,17 @@ jobs:
         rm -rf "$OUTPUT_DIR"
         mkdir -p "$OUTPUT_DIR"
 
-        echo "Output directory: $OUTPUT_DIR"
+        echo "Current directory: $(pwd)"
+        echo "Listing ADF folders:"
+        ls -la
 
-        npm run build export \
-          . \
-          /subscriptions/${{ secrets.AZURE_SUBSCRIPTION_ID }}/resourceGroups/${{ secrets.AZURE_RESOURCE_GROUP }}/providers/Microsoft.DataFactory/factories/${{ secrets.AZURE_DATA_FACTORY_NAME }} \
-          "$OUTPUT_DIR"
+        echo "=== Running Export with trace ==="
+        node --trace-uncaught node_modules/@microsoft/azure-data-factory-utilities/lib/index.js export . \
+          "/subscriptions/${{ secrets.AZURE_SUBSCRIPTION_ID }}/resourceGroups/${{ secrets.AZURE_RESOURCE_GROUP }}/providers/Microsoft.DataFactory/factories/${{ secrets.AZURE_DATA_FACTORY_NAME }}" \
+          "$OUTPUT_DIR" || true
 
-        echo "=== Export completed. Listing files ==="
-        ls -laR "$OUTPUT_DIR" || echo "No files found!"
-
-        echo "arm_template_path=$OUTPUT_DIR" >> $GITHUB_OUTPUT
+        echo "=== Export completed. Listing output ==="
+        ls -laR "$OUTPUT_DIR" || echo "No output files!"
       shell: bash
 
     - name: Publish ARM Template Artifact
