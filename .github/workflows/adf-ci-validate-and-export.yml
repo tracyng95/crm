@@ -1,62 +1,74 @@
-name: ADF-CI-Validate-and-Export
+name: ADF CI - Validate and Export ARM Template
 
 on:
-  # push:
-  #   branches: [ main ]
   pull_request:
+    branches: [ main ]
+  push:
     branches: [ main ]
 
 jobs:
   build:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 30
 
     steps:
-    - name: Checkout repository
-      uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
-    - name: Setup Node.js
-      uses: actions/setup-node@v4
-      with:
-        node-version: 20.x
-        cache: 'npm'
-        cache-dependency-path: '**/package-lock.json'
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+          cache-dependency-path: '**/package-lock.json'
 
-    - name: npm ci
-      run: npm ci
+      - name: Install dependencies
+        run: npm ci
 
-    - name: Validate ADF
-      run: |
-        echo "=== Starting Validation ==="
-        npm run build validate . \
-          /subscriptions/${{ secrets.AZURE_SUBSCRIPTION_ID }}/resourceGroups/${{ secrets.AZURE_RESOURCE_GROUP }}/providers/Microsoft.DataFactory/factories/${{ secrets.AZURE_DATA_FACTORY_NAME }}
-      shell: bash
+      - name: Validate ADF Resources
+        run: |
+          echo "=== Starting ADF Validation ==="
+          npm run build validate . \
+            "/subscriptions/${{ secrets.AZURE_SUBSCRIPTION_ID }}/resourceGroups/${{ secrets.AZURE_RESOURCE_GROUP }}/providers/Microsoft.DataFactory/factories/${{ secrets.AZURE_DATA_FACTORY_NAME }}"
+        shell: bash
 
-    - name: Export ARM Template
-      id: export
-      run: |
-        echo "=== Starting Export ==="
+      - name: Export ARM Template
+        id: export
+        run: |
+          echo "=== Starting ARM Template Export ==="
 
-        OUTPUT_DIR="${{ github.workspace }}/ArmTemplate"
-        rm -rf "$OUTPUT_DIR"
-        mkdir -p "$OUTPUT_DIR"
+          OUTPUT_DIR="${{ github.workspace }}/ArmTemplate"
+          rm -rf "$OUTPUT_DIR"
+          mkdir -p "$OUTPUT_DIR"
 
-        echo "Current directory: $(pwd)"
-        echo "ADF Root: ."
+          echo "Current directory: $(pwd)"
+          echo "ADF Root folder: ."
+          echo "Output directory: $OUTPUT_DIR"
 
-        npm run build export \
-          . \
-          /subscriptions/${{ secrets.AZURE_SUBSCRIPTION_ID }}/resourceGroups/${{ secrets.AZURE_RESOURCE_GROUP }}/providers/Microsoft.DataFactory/factories/${{ secrets.AZURE_DATA_FACTORY_NAME }} \
-          "$OUTPUT_DIR"
+          npm run build export \
+            . \
+            "/subscriptions/${{ secrets.AZURE_SUBSCRIPTION_ID }}/resourceGroups/${{ secrets.AZURE_RESOURCE_GROUP }}/providers/Microsoft.DataFactory/factories/${{ secrets.AZURE_DATA_FACTORY_NAME }}" \
+            "$OUTPUT_DIR" 2>&1 | tee export.log
 
-        echo "=== Export completed. Listing files ==="
-        ls -laR "$OUTPUT_DIR" || echo "No files found!"
-        echo "arm_template_path=$OUTPUT_DIR" >> $GITHUB_OUTPUT
-      shell: bash
+          echo "=== Export Log Preview ==="
+          tail -n 50 export.log || true
 
-    - name: Publish ARM Template Artifact
-      uses: actions/upload-artifact@v4
-      with:
-        name: ArmTemplates
-        path: ${{ steps.export.outputs.arm_template_path }}
-        retention-days: 30
+          echo "=== Files generated ==="
+          ls -laR "$OUTPUT_DIR" || echo "No files generated!"
+
+          if [ ! -f "$OUTPUT_DIR/ARMTemplateForFactory.json" ]; then
+            echo "ERROR: ARMTemplateForFactory.json was not generated!"
+            exit 1
+          fi
+
+          echo "arm_template_path=$OUTPUT_DIR" >> $GITHUB_OUTPUT
+        shell: bash
+
+      - name: Upload ARM Template Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ArmTemplates
+          path: ${{ steps.export.outputs.arm_template_path }}
+          retention-days: 30
