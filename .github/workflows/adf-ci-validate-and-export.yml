@@ -9,7 +9,10 @@ on:
 
 permissions:
   contents: read
-
+  
+env:
+  ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION: true
+  
 jobs:
   validate-and-export:
     runs-on: ubuntu-latest
@@ -37,6 +40,7 @@ jobs:
           echo "=== Validating ADF resources ==="
           npm run build validate . \
             /subscriptions/${{ env.SUBSCRIPTION_ID }}/resourceGroups/${{ env.RESOURCE_GROUP_NAME }}/providers/Microsoft.DataFactory/factories/${{ env.DATA_FACTORY_NAME }}
+      
       - name: Export ARM Template
         uses: Azure/data-factory-export-action@v1.2.1
         with:
