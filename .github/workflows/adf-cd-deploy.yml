@@ -1,0 +1,58 @@
+name: ADF-CD-Deploy
+
+on:
+  push:
+    branches: [ adf_publish ]     # Trigger when ADF Studio "Publish" updates this branch
+  workflow_dispatch:              # Allow manual trigger
+
+permissions:
+  contents: read
+
+env:
+  ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment: production        # Optional: Add approval gate in GitHub Environments
+
+    env:     
+      SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+      RESOURCE_GROUP_NAME: ${{ secrets.AZURE_RESOURCE_GROUP }}
+      DATA_FACTORY_NAME: ${{ secrets.AZURE_DATA_FACTORY_NAME }}
+      
+      ARM_TEMPLATE_FOLDER: './armTemplate'
+
+    steps:
+      - name: Checkout adf_publish branch
+        uses: actions/checkout@v4
+        with:
+          ref: adf_publish
+
+      - name: Download ARM Template Artifact (if needed from CI)
+        # Optional: If you want to use artifact from CI instead of adf_publish
+        uses: actions/download-artifact@v4
+        with:
+          name: ArmTemplates
+          path: ${{ env.ARM_TEMPLATE_FOLDER }}
+        continue-on-error: true
+
+      - name: Azure Login
+        uses: azure/login@v2
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}   # Service Principal secret
+
+      - name: Deploy ARM Template
+        uses: azure/arm-deploy@v2
+        with:
+          subscriptionId: ${{ env.SUBSCRIPTION_ID }}
+          resourceGroupName: ${{ env.RESOURCE_GROUP_NAME }}
+          template: ${{ env.ARM_TEMPLATE_FOLDER }}/ARMTemplateForFactory.json
+          parameters: ${{ env.ARM_TEMPLATE_FOLDER }}/ARMTemplateParametersForFactory.json
+          deploymentMode: Incremental
+          deploymentName: ADF-Deploy-${{ github.run_number }}
+
+      - name: Post-Deployment Script (Optional)
+        run: |
+          echo "ARM Template deployed successfully to ${{ env.DATA_FACTORY_NAME }}"
+          echo "You can now run Post Deployment scripts if needed (PrePostDeploymentScript.ps1)"
