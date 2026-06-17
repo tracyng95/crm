@@ -1,0 +1,555 @@
+{
+	"$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+	"contentVersion": "1.0.0.0",
+	"parameters": {
+		"factoryName": {
+			"type": "string",
+			"metadata": "Data Factory name",
+			"defaultValue": "adf-cic-crm-dev-001"
+		},
+		"MPE-PG-CIC-CRM-DEV-01_properties_privateLinkResourceId": {
+			"type": "string",
+			"defaultValue": "/subscriptions/2c349f16-c9e8-4662-b25b-453d175bee12/resourceGroups/rg-cic-crm/providers/Microsoft.DBforPostgreSQL/flexibleServers/pg-cic-crm-dev-01"
+		},
+		"MPE-PG-CIC-CRM-DEV-01_properties_groupId": {
+			"type": "string",
+			"defaultValue": "postgresqlServer"
+		},
+		"MPE-PG-CIC-CRM-DEV-01_properties_fqdns": {
+			"type": "array",
+			"defaultValue": [
+				"pg-cic-crm-dev-01.postgres.database.azure.com"
+			]
+		},
+		"MPE-staciccrmdev001_properties_privateLinkResourceId": {
+			"type": "string",
+			"defaultValue": "/subscriptions/2c349f16-c9e8-4662-b25b-453d175bee12/resourceGroups/rg-cic-crm/providers/Microsoft.Storage/storageAccounts/staciccrmdev001"
+		},
+		"MPE-staciccrmdev001_properties_groupId": {
+			"type": "string",
+			"defaultValue": "blob"
+		},
+		"MPE-staciccrmdev001_properties_fqdns": {
+			"type": "array",
+			"defaultValue": [
+				"staciccrmdev001.blob.core.windows.net"
+			]
+		},
+		"LS_ADLS_staciccrmdev001_properties_typeProperties_serviceEndpoint": {
+			"type": "string",
+			"defaultValue": "https://staciccrmdev001.blob.core.windows.net"
+		},
+		"crm_psql_dev_pl_properties_typeProperties_server": {
+			"type": "string",
+			"defaultValue": "pg-cic-crm-dev-01.privatelink.postgres.database.azure.com"
+		},
+		"crm_psql_dev_pl_properties_typeProperties_database": {
+			"type": "string",
+			"defaultValue": "@{linkedService().database_name}"
+		},
+		"crmpsql_crm_dev_properties_typeProperties_server": {
+			"type": "string",
+			"defaultValue": "pg-cic-crm-dev-01.postgres.database.azure.com"
+		},
+		"crmpsql_crm_dev_properties_typeProperties_database": {
+			"type": "string",
+			"defaultValue": "@{linkedService().database_name}"
+		}
+	},
+	"variables": {
+		"factoryId": "[concat('Microsoft.DataFactory/factories/', parameters('factoryName'))]"
+	},
+	"resources": [
+		{
+			"name": "[concat(parameters('factoryName'), '/pipeline2')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "Wait1",
+						"type": "Wait",
+						"dependsOn": [],
+						"userProperties": [],
+						"typeProperties": {
+							"waitTimeInSeconds": 1
+						}
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {}
+				},
+				"annotations": []
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/pipeline3')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "Wait1",
+						"type": "Wait",
+						"dependsOn": [],
+						"userProperties": [],
+						"typeProperties": {
+							"waitTimeInSeconds": 1
+						}
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {}
+				},
+				"annotations": []
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/pipeline4')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "Wait1",
+						"type": "Wait",
+						"dependsOn": [],
+						"userProperties": [],
+						"typeProperties": {
+							"waitTimeInSeconds": 1
+						}
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {}
+				},
+				"annotations": []
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/pipeline5')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "Wait1",
+						"type": "Wait",
+						"dependsOn": [],
+						"userProperties": [],
+						"typeProperties": {
+							"waitTimeInSeconds": 1
+						}
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {}
+				},
+				"annotations": []
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/pipeline6')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "Wait1",
+						"type": "Wait",
+						"dependsOn": [],
+						"userProperties": [],
+						"typeProperties": {
+							"waitTimeInSeconds": 1
+						}
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {}
+				},
+				"annotations": []
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/pipeline7')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "Wait1",
+						"type": "Wait",
+						"dependsOn": [],
+						"userProperties": [],
+						"typeProperties": {
+							"waitTimeInSeconds": 1
+						}
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {}
+				},
+				"annotations": []
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/pipeline8')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "Wait1",
+						"type": "Wait",
+						"dependsOn": [],
+						"userProperties": [],
+						"typeProperties": {
+							"waitTimeInSeconds": 1
+						}
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {}
+				},
+				"annotations": []
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/pipeline9')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "Wait1",
+						"type": "Wait",
+						"dependsOn": [],
+						"userProperties": [],
+						"typeProperties": {
+							"waitTimeInSeconds": 1
+						}
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {}
+				},
+				"annotations": []
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/trigger1')]",
+			"type": "Microsoft.DataFactory/factories/triggers",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"annotations": [],
+				"runtimeState": "Stopped",
+				"pipelines": [],
+				"type": "ScheduleTrigger",
+				"typeProperties": {
+					"recurrence": {
+						"frequency": "Minute",
+						"interval": 15,
+						"startTime": "2026-06-13T03:37:00",
+						"timeZone": "China Standard Time"
+					}
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/AzureIntegrationRuntime')]",
+			"type": "Microsoft.DataFactory/factories/integrationRuntimes",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"type": "Managed",
+				"typeProperties": {
+					"computeProperties": {
+						"location": "East Asia",
+						"dataFlowProperties": {
+							"computeType": "General",
+							"coreCount": 8,
+							"timeToLive": 10,
+							"cleanup": false,
+							"customProperties": []
+						}
+					}
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/default')]",
+			"type": "Microsoft.DataFactory/factories/managedVirtualNetworks",
+			"apiVersion": "2018-06-01",
+			"properties": {},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/AutoResolveIntegrationRuntime')]",
+			"type": "Microsoft.DataFactory/factories/integrationRuntimes",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"type": "Managed",
+				"typeProperties": {
+					"computeProperties": {
+						"location": "AutoResolve",
+						"dataFlowProperties": {
+							"computeType": "General",
+							"coreCount": 8,
+							"timeToLive": 0
+						}
+					}
+				},
+				"managedVirtualNetwork": {
+					"type": "ManagedVirtualNetworkReference",
+					"referenceName": "default"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/managedVirtualNetworks/default')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/ManagedIntegrationRuntime')]",
+			"type": "Microsoft.DataFactory/factories/integrationRuntimes",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"type": "Managed",
+				"typeProperties": {
+					"computeProperties": {
+						"location": "East Asia",
+						"dataFlowProperties": {
+							"computeType": "General",
+							"coreCount": 8,
+							"timeToLive": 10,
+							"cleanup": false,
+							"customProperties": []
+						},
+						"pipelineExternalComputeScaleProperties": {
+							"timeToLive": 30,
+							"numberOfPipelineNodes": 1,
+							"numberOfExternalNodes": 1
+						}
+					}
+				},
+				"managedVirtualNetwork": {
+					"type": "ManagedVirtualNetworkReference",
+					"referenceName": "default"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/managedVirtualNetworks/default')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/default/MPE-PG-CIC-CRM-DEV-01')]",
+			"type": "Microsoft.DataFactory/factories/managedVirtualNetworks/managedPrivateEndpoints",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"privateLinkResourceId": "[parameters('MPE-PG-CIC-CRM-DEV-01_properties_privateLinkResourceId')]",
+				"groupId": "[parameters('MPE-PG-CIC-CRM-DEV-01_properties_groupId')]",
+				"fqdns": "[parameters('MPE-PG-CIC-CRM-DEV-01_properties_fqdns')]"
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/managedVirtualNetworks/default')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/default/MPE-staciccrmdev001')]",
+			"type": "Microsoft.DataFactory/factories/managedVirtualNetworks/managedPrivateEndpoints",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"privateLinkResourceId": "[parameters('MPE-staciccrmdev001_properties_privateLinkResourceId')]",
+				"groupId": "[parameters('MPE-staciccrmdev001_properties_groupId')]",
+				"fqdns": "[parameters('MPE-staciccrmdev001_properties_fqdns')]"
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/managedVirtualNetworks/default')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/LS_ADLS_staciccrmdev001')]",
+			"type": "Microsoft.DataFactory/factories/linkedServices",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"annotations": [],
+				"type": "AzureBlobStorage",
+				"typeProperties": {
+					"serviceEndpoint": "[parameters('LS_ADLS_staciccrmdev001_properties_typeProperties_serviceEndpoint')]",
+					"accountKind": "StorageV2"
+				},
+				"connectVia": {
+					"referenceName": "ManagedIntegrationRuntime",
+					"type": "IntegrationRuntimeReference"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/integrationRuntimes/ManagedIntegrationRuntime')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/crm_psql_dev_pl')]",
+			"type": "Microsoft.DataFactory/factories/linkedServices",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"parameters": {
+					"database_name": {
+						"type": "string",
+						"defaultValue": "iclub"
+					}
+				},
+				"annotations": [],
+				"type": "AzurePostgreSql",
+				"version": "2.0",
+				"typeProperties": {
+					"server": "[parameters('crm_psql_dev_pl_properties_typeProperties_server')]",
+					"port": "5432",
+					"database": "[parameters('crm_psql_dev_pl_properties_typeProperties_database')]",
+					"sslMode": 2,
+					"authenticationType": "SystemAssignedManagedIdentity"
+				},
+				"connectVia": {
+					"referenceName": "ManagedIntegrationRuntime",
+					"type": "IntegrationRuntimeReference"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/integrationRuntimes/ManagedIntegrationRuntime')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/crmpsql_crm_dev')]",
+			"type": "Microsoft.DataFactory/factories/linkedServices",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"parameters": {
+					"database_name": {
+						"type": "string",
+						"defaultValue": "iclub"
+					}
+				},
+				"annotations": [],
+				"type": "AzurePostgreSql",
+				"version": "2.0",
+				"typeProperties": {
+					"server": "[parameters('crmpsql_crm_dev_properties_typeProperties_server')]",
+					"port": "5432",
+					"database": "[parameters('crmpsql_crm_dev_properties_typeProperties_database')]",
+					"sslMode": 2,
+					"authenticationType": "SystemAssignedManagedIdentity"
+				},
+				"connectVia": {
+					"referenceName": "AutoResolveIntegrationRuntime",
+					"type": "IntegrationRuntimeReference"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/integrationRuntimes/AutoResolveIntegrationRuntime')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/DS_ADLS_CSV')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "LS_ADLS_staciccrmdev001",
+					"type": "LinkedServiceReference"
+				},
+				"parameters": {
+					"container_name": {
+						"type": "string"
+					},
+					"directory_name": {
+						"type": "string"
+					},
+					"file_name": {
+						"type": "string"
+					}
+				},
+				"annotations": [],
+				"type": "DelimitedText",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobStorageLocation",
+						"fileName": {
+							"value": "@dataset().file_name",
+							"type": "Expression"
+						},
+						"folderPath": {
+							"value": "@dataset().directory_name",
+							"type": "Expression"
+						},
+						"container": {
+							"value": "@dataset().container_name",
+							"type": "Expression"
+						}
+					},
+					"columnDelimiter": ",",
+					"escapeChar": "\\",
+					"firstRowAsHeader": true,
+					"quoteChar": "\""
+				},
+				"schema": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/LS_ADLS_staciccrmdev001')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/DS_PSQL_CRM_DEV')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "crmpsql_crm_dev",
+					"type": "LinkedServiceReference",
+					"parameters": {
+						"database_name": {
+							"value": "@dataset().database_name",
+							"type": "Expression"
+						}
+					}
+				},
+				"parameters": {
+					"database_name": {
+						"type": "string",
+						"defaultValue": "iclub"
+					},
+					"schema_name": {
+						"type": "string",
+						"defaultValue": "landing"
+					},
+					"table_name": {
+						"type": "string",
+						"defaultValue": "members"
+					}
+				},
+				"annotations": [],
+				"type": "AzurePostgreSqlTable",
+				"schema": [],
+				"typeProperties": {
+					"schema": {
+						"value": "@dataset().schema_name",
+						"type": "Expression"
+					},
+					"table": {
+						"value": "@dataset().table_name",
+						"type": "Expression"
+					}
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/crmpsql_crm_dev')]"
+			]
+		}
+	]
+}

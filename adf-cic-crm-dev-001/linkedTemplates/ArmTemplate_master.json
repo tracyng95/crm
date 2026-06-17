@@ -1,0 +1,143 @@
+{
+	"$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+	"contentVersion": "1.0.0.0",
+	"parameters": {
+		"factoryName": {
+			"type": "string",
+			"metadata": "Data Factory name",
+			"defaultValue": "adf-cic-crm-dev-001"
+		},
+		"LS_ADLS_staciccrmdev001_properties_typeProperties_serviceEndpoint": {
+			"type": "string",
+			"defaultValue": "https://staciccrmdev001.blob.core.windows.net"
+		},
+		"crm_psql_dev_pl_properties_typeProperties_server": {
+			"type": "string",
+			"defaultValue": "pg-cic-crm-dev-01.privatelink.postgres.database.azure.com"
+		},
+		"crm_psql_dev_pl_properties_typeProperties_database": {
+			"type": "string",
+			"defaultValue": "@{linkedService().database_name}"
+		},
+		"crmpsql_crm_dev_properties_typeProperties_server": {
+			"type": "string",
+			"defaultValue": "pg-cic-crm-dev-01.postgres.database.azure.com"
+		},
+		"crmpsql_crm_dev_properties_typeProperties_database": {
+			"type": "string",
+			"defaultValue": "@{linkedService().database_name}"
+		},
+		"MPE-PG-CIC-CRM-DEV-01_properties_privateLinkResourceId": {
+			"type": "string",
+			"defaultValue": "/subscriptions/2c349f16-c9e8-4662-b25b-453d175bee12/resourceGroups/rg-cic-crm/providers/Microsoft.DBforPostgreSQL/flexibleServers/pg-cic-crm-dev-01"
+		},
+		"MPE-PG-CIC-CRM-DEV-01_properties_groupId": {
+			"type": "string",
+			"defaultValue": "postgresqlServer"
+		},
+		"MPE-PG-CIC-CRM-DEV-01_properties_fqdns": {
+			"type": "array",
+			"defaultValue": [
+				"pg-cic-crm-dev-01.postgres.database.azure.com"
+			]
+		},
+		"MPE-staciccrmdev001_properties_privateLinkResourceId": {
+			"type": "string",
+			"defaultValue": "/subscriptions/2c349f16-c9e8-4662-b25b-453d175bee12/resourceGroups/rg-cic-crm/providers/Microsoft.Storage/storageAccounts/staciccrmdev001"
+		},
+		"MPE-staciccrmdev001_properties_groupId": {
+			"type": "string",
+			"defaultValue": "blob"
+		},
+		"MPE-staciccrmdev001_properties_fqdns": {
+			"type": "array",
+			"defaultValue": [
+				"staciccrmdev001.blob.core.windows.net"
+			]
+		},
+		"containerUri": {
+			"type": "string",
+			"metadata": "URI to storage account containing linked ARM templates"
+		},
+		"containerSasToken": {
+			"type": "string",
+			"metadata": "Sas token to storage account containing linked ARM templates"
+		}
+	},
+	"variables": {
+		"factoryId": "[concat('Microsoft.DataFactory/factories/', parameters('factoryName'))]"
+	},
+	"resources": [
+		{
+			"name": "adf-cic-crm-dev-001_ArmTemplate_0",
+			"type": "Microsoft.Resources/deployments",
+			"apiVersion": "2024-03-01",
+			"properties": {
+				"mode": "incremental",
+				"templateLink": {
+					"uri": "[concat(parameters('containerUri'), '/ArmTemplate_0.json', parameters('containerSasToken'))]",
+					"contentVersion": "1.0.0.0"
+				},
+				"parameters": {
+					"factoryName": {
+						"value": "[parameters('factoryName')]"
+					},
+					"MPE-PG-CIC-CRM-DEV-01_properties_privateLinkResourceId": {
+						"value": "[parameters('MPE-PG-CIC-CRM-DEV-01_properties_privateLinkResourceId')]"
+					},
+					"MPE-PG-CIC-CRM-DEV-01_properties_groupId": {
+						"value": "[parameters('MPE-PG-CIC-CRM-DEV-01_properties_groupId')]"
+					},
+					"MPE-PG-CIC-CRM-DEV-01_properties_fqdns": {
+						"value": "[parameters('MPE-PG-CIC-CRM-DEV-01_properties_fqdns')]"
+					},
+					"MPE-staciccrmdev001_properties_privateLinkResourceId": {
+						"value": "[parameters('MPE-staciccrmdev001_properties_privateLinkResourceId')]"
+					},
+					"MPE-staciccrmdev001_properties_groupId": {
+						"value": "[parameters('MPE-staciccrmdev001_properties_groupId')]"
+					},
+					"MPE-staciccrmdev001_properties_fqdns": {
+						"value": "[parameters('MPE-staciccrmdev001_properties_fqdns')]"
+					},
+					"LS_ADLS_staciccrmdev001_properties_typeProperties_serviceEndpoint": {
+						"value": "[parameters('LS_ADLS_staciccrmdev001_properties_typeProperties_serviceEndpoint')]"
+					},
+					"crm_psql_dev_pl_properties_typeProperties_server": {
+						"value": "[parameters('crm_psql_dev_pl_properties_typeProperties_server')]"
+					},
+					"crm_psql_dev_pl_properties_typeProperties_database": {
+						"value": "[parameters('crm_psql_dev_pl_properties_typeProperties_database')]"
+					},
+					"crmpsql_crm_dev_properties_typeProperties_server": {
+						"value": "[parameters('crmpsql_crm_dev_properties_typeProperties_server')]"
+					},
+					"crmpsql_crm_dev_properties_typeProperties_database": {
+						"value": "[parameters('crmpsql_crm_dev_properties_typeProperties_database')]"
+					}
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "adf-cic-crm-dev-001_ArmTemplate_1",
+			"type": "Microsoft.Resources/deployments",
+			"apiVersion": "2024-03-01",
+			"properties": {
+				"mode": "incremental",
+				"templateLink": {
+					"uri": "[concat(parameters('containerUri'), '/ArmTemplate_1.json', parameters('containerSasToken'))]",
+					"contentVersion": "1.0.0.0"
+				},
+				"parameters": {
+					"factoryName": {
+						"value": "[parameters('factoryName')]"
+					}
+				}
+			},
+			"dependsOn": [
+				"[resourceId('Microsoft.Resources/deployments', 'adf-cic-crm-dev-001_ArmTemplate_0')]"
+			]
+		}
+	]
+}
