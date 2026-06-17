@@ -1,0 +1,72 @@
+name: ADF-CICD-UAT
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  id-token: write
+
+env:
+  ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION: true
+
+jobs:
+  deploy-to-uat:
+    runs-on: ubuntu-latest
+
+    env:
+      SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+      RESOURCE_GROUP_NAME: ${{ secrets.AZURE_RESOURCE_GROUP }}
+      DATA_FACTORY_NAME: ${{ secrets.AZURE_DATA_FACTORY_NAME }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: 'npm'
+
+      - name: Install ADF Utilities
+        run: npm ci
+
+      - name: Validate ADF
+        run: |
+          echo "=== Validating ADF ==="
+          npm run build validate . \
+            /subscriptions/${{ env.SUBSCRIPTION_ID }}/resourceGroups/${{ env.RESOURCE_GROUP_NAME }}/providers/Microsoft.DataFactory/factories/${{ env.DATA_FACTORY_NAME }}
+
+      - name: Export ARM Template
+        uses: Azure/data-factory-export-action@v1.2.1
+        with:
+          path: '.' 
+          id: /subscriptions/${{ env.SUBSCRIPTION_ID }}/resourceGroups/${{ env.RESOURCE_GROUP_NAME }}/providers/Microsoft.DataFactory/factories/${{ env.DATA_FACTORY_NAME }}
+
+      - name: Azure Login
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ env.SUBSCRIPTION_ID }}
+
+      - name: Deploy to UAT Data Factory
+        uses: azure/arm-deploy@v2
+        with:
+          subscriptionId: ${{ env.SUBSCRIPTION_ID }}
+          resourceGroupName: ${{ env.RESOURCE_GROUP_NAME }}
+          template: ./armTemplate/ARMTemplateForFactory.json
+          parameters: ./armTemplate/ARMTemplateParametersForFactory.json
+          deploymentMode: Incremental
+          deploymentName: ADF-UAT-Deploy-${{ github.run_number }}
+
+      - name: Summary
+        run: |
+          echo "✅ Successfully deployed to UAT!"
+          echo "Factory : ${{ env.DATA_FACTORY_NAME }}"
+          echo "RG      : ${{ env.RESOURCE_GROUP_NAME }}"
