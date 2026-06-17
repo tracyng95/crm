@@ -16,8 +16,8 @@ jobs:
 
     env:
       SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
-      RESOURCE_GROUP_NAME: 'rg-cic-crm'
-      DATA_FACTORY_NAME: 'adf-cic-crm-dev-001'
+      RESOURCE_GROUP_NAME: ${{ secrets.AZURE_RESOURCE_GROUP }}
+      DATA_FACTORY_NAME: ${{ secrets.AZURE_DATA_FACTORY_NAME }}
 
     steps:
       - name: Checkout repository
@@ -37,19 +37,18 @@ jobs:
           echo "=== Validating ADF resources ==="
           npm run build validate . \
             /subscriptions/${{ env.SUBSCRIPTION_ID }}/resourceGroups/${{ env.RESOURCE_GROUP_NAME }}/providers/Microsoft.DataFactory/factories/${{ env.DATA_FACTORY_NAME }}
-
-      - name: Export ARM Template (Official Action)
+      - name: Export ARM Template
         uses: Azure/data-factory-export-action@v1.2.1
         with:
           path: '.' 
           id: /subscriptions/${{ env.SUBSCRIPTION_ID }}/resourceGroups/${{ env.RESOURCE_GROUP_NAME }}/providers/Microsoft.DataFactory/factories/${{ env.DATA_FACTORY_NAME }}
 
       - name: List Exported Files
-        run: ls -laR ./ArmTemplate || echo "ArmTemplate folder not found"
+        run: ls -laR ./armTemplate || echo "armTemplate folder not found"
 
       - name: Publish ARM Template Artifact
         uses: actions/upload-artifact@v4
         with:
           name: ArmTemplates
-          path: ./ArmTemplate
+          path: ./armTemplate
           retention-days: 30
