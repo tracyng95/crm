@@ -1,4 +1,4 @@
-name: ADF-CICD-UAT
+name: ADF-CICD-UAT (Combined)
 
 on:
   push:
@@ -48,6 +48,9 @@ jobs:
           path: '.' 
           id: /subscriptions/${{ env.SUBSCRIPTION_ID }}/resourceGroups/${{ env.RESOURCE_GROUP_NAME }}/providers/Microsoft.DataFactory/factories/${{ env.DATA_FACTORY_NAME }}
 
+      - name: List Exported Files
+        run: ls -laR ./armTemplate || echo "armTemplate folder not found"
+
       - name: Azure Login
         uses: azure/login@v2
         with:
@@ -55,7 +58,7 @@ jobs:
           tenant-id: ${{ secrets.AZURE_TENANT_ID }}
           subscription-id: ${{ env.SUBSCRIPTION_ID }}
 
-      - name: Deploy to UAT Data Factory
+      - name: Deploy to UAT
         uses: azure/arm-deploy@v2
         with:
           subscriptionId: ${{ env.SUBSCRIPTION_ID }}
@@ -65,8 +68,12 @@ jobs:
           deploymentMode: Incremental
           deploymentName: ADF-UAT-Deploy-${{ github.run_number }}
 
+      - name: Publish ARM Template as Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ArmTemplates
+          path: ./armTemplate
+          retention-days: 30
+
       - name: Summary
-        run: |
-          echo "✅ Successfully deployed to UAT!"
-          echo "Factory : ${{ env.DATA_FACTORY_NAME }}"
-          echo "RG      : ${{ env.RESOURCE_GROUP_NAME }}"
+        run: echo "✅ Validation + Deploy to UAT completed successfully!"
