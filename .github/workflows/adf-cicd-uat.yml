@@ -94,4 +94,5 @@ jobs:
           deploymentName: ADF-UAT-Deploy-${{ github.run_number }}
 
       - name: Summary
-        run: echo "✅ Successfully deployed to UAT Factory: ${{ env.DATA_FACTORY_NAME }}"
+        run: |
+          echo "✅ Successfully deployed to UAT Factory: ${{ env.DATA_FACTORY_NAME }}"
