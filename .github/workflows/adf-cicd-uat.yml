@@ -48,6 +48,13 @@ jobs:
           path: '.' 
           id: /subscriptions/${{ env.SUBSCRIPTION_ID }}/resourceGroups/${{ env.RESOURCE_GROUP_NAME }}/providers/Microsoft.DataFactory/factories/${{ env.DATA_FACTORY_NAME }}
 
+      - name: List Files (Debug)
+        run: |
+          echo "=== Current directory files ==="
+          ls -la
+          echo "=== armTemplate folder ==="
+          ls -laR ./armTemplate || echo "armTemplate folder not found!"
+
       - name: Azure Login
         uses: azure/login@v2
         with:
@@ -66,4 +73,4 @@ jobs:
           deploymentName: ADF-UAT-Deploy-${{ github.run_number }}
 
       - name: Summary
-        run: echo "✅ Validation + Deploy to UAT completed successfully!"
+        run: echo "✅ Workflow completed!"
