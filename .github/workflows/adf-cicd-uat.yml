@@ -1,10 +1,10 @@
-name: ADF-CICD-UAT (Combined)
+name: ADF-CICD-UAT
 
 on:
-  push:
-    branches: [ main ]
   pull_request:
-    branches: [ main ]
+    branches: [ master ]
+  push:
+    branches: [ master ]
   workflow_dispatch:
 
 permissions:
@@ -15,13 +15,10 @@ env:
   ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION: true
 
 jobs:
-  deploy-to-uat:
+  # ==================== CI: Validate + Export ====================
+  ci-validate-export:
+    if: github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
-
-    env:
-      SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
-      RESOURCE_GROUP_NAME: ${{ secrets.AZURE_RESOURCE_GROUP }}
-      DATA_FACTORY_NAME: ${{ secrets.AZURE_DATA_FACTORY_NAME }}
 
     steps:
       - name: Checkout code
@@ -40,16 +37,44 @@ jobs:
         run: |
           echo "=== Validating ADF ==="
           npm run build validate . \
-            /subscriptions/${{ env.SUBSCRIPTION_ID }}/resourceGroups/${{ env.RESOURCE_GROUP_NAME }}/providers/Microsoft.DataFactory/factories/${{ env.DATA_FACTORY_NAME }}
+            /subscriptions/${{ secrets.AZURE_SUBSCRIPTION_ID }}/resourceGroups/${{ secrets.AZURE_RESOURCE_GROUP }}/providers/Microsoft.DataFactory/factories/${{ secrets.AZURE_DATA_FACTORY_NAME }}
 
       - name: Export ARM Template
         uses: Azure/data-factory-export-action@v1.2.1
         with:
           path: '.' 
-          id: /subscriptions/${{ env.SUBSCRIPTION_ID }}/resourceGroups/${{ env.RESOURCE_GROUP_NAME }}/providers/Microsoft.DataFactory/factories/${{ env.DATA_FACTORY_NAME }}
+          id: /subscriptions/${{ secrets.AZURE_SUBSCRIPTION_ID }}/resourceGroups/${{ secrets.AZURE_RESOURCE_GROUP }}/providers/Microsoft.DataFactory/factories/${{ secrets.AZURE_DATA_FACTORY_NAME }}
 
-      - name: List Exported Files
-        run: ls -laR ./armTemplate || echo "armTemplate folder not found"
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ArmTemplates
+          path: ./armTemplate
+          retention-days: 30
+
+  # ==================== CD: Deploy to UAT ====================
+  cd-deploy-uat:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/master'
+    runs-on: ubuntu-latest
+    needs: ci-validate-export        # Wait for CI to finish
+    environment: uat                 # Optional: approval gate
+
+    env:
+      SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+      RESOURCE_GROUP_NAME: ${{ secrets.AZURE_RESOURCE_GROUP }}
+      DATA_FACTORY_NAME: ${{ secrets.AZURE_DATA_FACTORY_NAME }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          ref: master
+
+      - name: Download Artifact from CI
+        uses: actions/download-artifact@v4
+        with:
+          name: ArmTemplates
+          path: ./armTemplate
 
       - name: Azure Login
         uses: azure/login@v2
@@ -68,12 +93,5 @@ jobs:
           deploymentMode: Incremental
           deploymentName: ADF-UAT-Deploy-${{ github.run_number }}
 
-      - name: Publish ARM Template as Artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: ArmTemplates
-          path: ./armTemplate
-          retention-days: 30
-
       - name: Summary
-        run: echo "✅ Validation + Deploy to UAT completed successfully!"
+        run: echo "✅ Successfully deployed to UAT Factory: ${{ env.DATA_FACTORY_NAME }}"
