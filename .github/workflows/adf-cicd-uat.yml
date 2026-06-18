@@ -15,7 +15,6 @@ env:
   ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION: true
 
 jobs:
-  # ==================== CI: Validate + Export ====================
   ci-validate-export:
     if: github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
@@ -52,12 +51,10 @@ jobs:
           path: ./armTemplate
           retention-days: 30
 
-  # ==================== CD: Deploy to UAT ====================
   cd-deploy-uat:
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
-    needs: ci-validate-export        # Wait for CI to finish
-    environment: uat                 # Optional: approval gate
+    needs: ci-validate-export
 
     env:
       SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
@@ -95,4 +92,4 @@ jobs:
 
       - name: Summary
         run: |
-          echo "✅ Successfully deployed to UAT Factory: ${{ env.DATA_FACTORY_NAME }}"
+          echo '✅ Successfully deployed to UAT Factory: ${{ env.DATA_FACTORY_NAME }}'
