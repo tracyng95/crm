@@ -54,14 +54,11 @@ jobs:
           path: ./armTemplate
           retention-days: 30
 
-  # ============================================================
-  # UAT Deployment
-  # ============================================================
   cd-deploy-uat:
     if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     needs: ci-validate-export
-    environment: uat                    # ← Tied to UAT environment
+    environment: uat
 
     env:
       SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
@@ -87,7 +84,6 @@ jobs:
           tenant-id: ${{ secrets.AZURE_TENANT_ID }}
           subscription-id: ${{ env.SUBSCRIPTION_ID }}
 
-      # Pre-deployment
       - name: Run Pre-Deployment Script (Stop Triggers)
         shell: pwsh
         run: |
@@ -101,7 +97,6 @@ jobs:
             -PreDeployment $true `
             -DeleteDeployment $false
 
-      # ARM Deploy
       - name: Deploy ADF ARM Template (UAT)
         uses: Azure/arm-deploy@v2
         with:
@@ -112,7 +107,6 @@ jobs:
           deploymentMode: Incremental
           deploymentName: ADF-UAT-Deploy-${{ github.run_number }}
 
-      # Post-deployment
       - name: Run Post-Deployment Script (Start Triggers)
         shell: pwsh
         run: |
@@ -126,17 +120,11 @@ jobs:
             -PreDeployment $false `
             -DeleteDeployment $false
 
-      - name: UAT Deployment Summary
-        run: echo "✅ Successfully deployed to UAT Factory: ${{ env.DATA_FACTORY_NAME }}"
-
-  # ============================================================
-  # PROD Deployment (requires approval)
-  # ============================================================
   cd-deploy-prd:
     if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     needs: cd-deploy-uat
-    environment: prod                    # ← Tied to Prod environment + approval gate
+    environment: prod
 
     env:
       SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
@@ -162,7 +150,6 @@ jobs:
           tenant-id: ${{ secrets.AZURE_TENANT_ID }}
           subscription-id: ${{ env.SUBSCRIPTION_ID }}
 
-      # Pre-deployment
       - name: Run Pre-Deployment Script (Stop Triggers)
         shell: pwsh
         run: |
@@ -176,7 +163,6 @@ jobs:
             -PreDeployment $true `
             -DeleteDeployment $false
 
-      # ARM Deploy to Prod
       - name: Deploy ADF ARM Template (PROD)
         uses: Azure/arm-deploy@v2
         with:
@@ -187,7 +173,6 @@ jobs:
           deploymentMode: Incremental
           deploymentName: ADF-PROD-Deploy-${{ github.run_number }}
 
-      # Post-deployment
       - name: Run Post-Deployment Script (Start Triggers)
         shell: pwsh
         run: |
@@ -200,6 +185,3 @@ jobs:
             -DataFactoryName "${{ env.DATA_FACTORY_NAME }}" `
             -PreDeployment $false `
             -DeleteDeployment $false
-
-      - name: PROD Deployment Summary
-        run: echo "✅ Successfully deployed to PROD Factory: ${{ env.DATA_FACTORY_NAME }}"
