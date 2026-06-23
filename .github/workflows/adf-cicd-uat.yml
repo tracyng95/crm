@@ -1,10 +1,10 @@
-name: ADF-CICD-UAT
+name: ADF-CI-CD
 
 on:
   pull_request:
-    branches: [ main ]
+    branches: [ master ]
   push:
-    branches: [ main ]
+    branches: [ master ]
   workflow_dispatch:
 
 permissions:
@@ -16,14 +16,12 @@ env:
 
 jobs:
   ci-validate-export:
-    # if: github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
 
     steps:
-      # Print the event name to the logs
       - name: Log the triggering event name
         run: echo "The workflow was triggered by the event -> ${{ github.event_name }}"
-        
+
       - name: Checkout code
         uses: actions/checkout@v4
 
@@ -41,11 +39,13 @@ jobs:
           echo "=== Validating ADF ==="
           npm run build validate . \
             /subscriptions/${{ secrets.AZURE_SUBSCRIPTION_ID }}/resourceGroups/${{ secrets.AZURE_RESOURCE_GROUP }}/providers/Microsoft.DataFactory/factories/${{ secrets.AZURE_DATA_FACTORY_NAME }}
+
       - name: Export ARM Template
         uses: Azure/data-factory-export-action@v1.2.1
         with:
-          path: '.' 
+          path: '.'
           id: /subscriptions/${{ secrets.AZURE_SUBSCRIPTION_ID }}/resourceGroups/${{ secrets.AZURE_RESOURCE_GROUP }}/providers/Microsoft.DataFactory/factories/${{ secrets.AZURE_DATA_FACTORY_NAME }}
+          continue-on-error: false
 
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
@@ -55,21 +55,21 @@ jobs:
           retention-days: 30
 
   cd-deploy-uat:
-  
     if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     needs: ci-validate-export
+    # environment: uat
 
     env:
       SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
       RESOURCE_GROUP_NAME: ${{ secrets.AZURE_RESOURCE_GROUP }}
       DATA_FACTORY_NAME: ${{ secrets.AZURE_DATA_FACTORY_NAME }}
 
-    steps:    
+    steps:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
-          ref: main
+          ref: master
 
       - name: Download Artifact from CI
         uses: actions/download-artifact@v4
@@ -77,15 +77,28 @@ jobs:
           name: ArmTemplates
           path: ./armTemplate
 
-      - name: Azure Login
+      - name: Azure Login (for ARM deploy)
         uses: azure/login@v2
         with:
           client-id: ${{ secrets.AZURE_CLIENT_ID }}
           tenant-id: ${{ secrets.AZURE_TENANT_ID }}
           subscription-id: ${{ env.SUBSCRIPTION_ID }}
 
-      - name: Deploy to UAT
-        uses: azure/arm-deploy@v2
+      - name: Run Pre-Deployment Script (Stop Triggers)
+        shell: pwsh
+        run: |
+          $token = az account get-access-token --resource-type arm --query accessToken -o tsv
+          Connect-AzAccount -AccessToken $token -AccountId "${{ secrets.AZURE_CLIENT_ID }}"
+
+          ./armTemplate/PrePostDeploymentScript.ps1 `
+            -ArmTemplate "./armTemplate/ARMTemplateForFactory.json" `
+            -ResourceGroupName "${{ env.RESOURCE_GROUP_NAME }}" `
+            -DataFactoryName "${{ env.DATA_FACTORY_NAME }}" `
+            -PreDeployment $true `
+            -DeleteDeployment $false
+
+      - name: Deploy ADF ARM Template (UAT)
+        uses: Azure/arm-deploy@v2
         with:
           subscriptionId: ${{ env.SUBSCRIPTION_ID }}
           resourceGroupName: ${{ env.RESOURCE_GROUP_NAME }}
@@ -94,6 +107,85 @@ jobs:
           deploymentMode: Incremental
           deploymentName: ADF-UAT-Deploy-${{ github.run_number }}
 
-      - name: Summary
+      - name: Run Post-Deployment Script (Start Triggers)
+        shell: pwsh
         run: |
-          echo 'Successfully deployed to UAT Factory: ${{ env.DATA_FACTORY_NAME }}'
+          $token = az account get-access-token --resource-type arm --query accessToken -o tsv
+          Connect-AzAccount -AccessToken $token -AccountId "${{ secrets.AZURE_CLIENT_ID }}"
+
+          ./armTemplate/PrePostDeploymentScript.ps1 `
+            -ArmTemplate "./armTemplate/ARMTemplateForFactory.json" `
+            -ResourceGroupName "${{ env.RESOURCE_GROUP_NAME }}" `
+            -DataFactoryName "${{ env.DATA_FACTORY_NAME }}" `
+            -PreDeployment $false `
+            -DeleteDeployment $false
+        env:
+          AZURE_SUBSCRIPTION_ID: ${{ env.SUBSCRIPTION_ID }}            
+
+  # cd-deploy-prd:
+  #   if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
+  #   runs-on: ubuntu-latest
+  #   needs: cd-deploy-uat
+  #   environment: prod
+
+  #   env:
+  #     SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+  #     RESOURCE_GROUP_NAME: ${{ secrets.AZURE_RESOURCE_GROUP }}
+  #     DATA_FACTORY_NAME: ${{ secrets.AZURE_DATA_FACTORY_NAME }}
+
+  #   steps:
+  #     - name: Checkout code
+  #       uses: actions/checkout@v4
+  #       with:
+  #         ref: master
+
+  #     - name: Download Artifact from CI
+  #       uses: actions/download-artifact@v4
+  #       with:
+  #         name: ArmTemplates
+  #         path: ./armTemplate
+
+  #     - name: Azure Login (for ARM deploy)
+  #       uses: azure/login@v2
+  #       with:
+  #         client-id: ${{ secrets.AZURE_CLIENT_ID }}
+  #         tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+  #         subscription-id: ${{ env.SUBSCRIPTION_ID }}
+
+  #     - name: Run Pre-Deployment Script (Stop Triggers)
+  #       shell: pwsh
+  #       run: |
+  #         $token = az account get-access-token --resource-type arm --query accessToken -o tsv
+  #         Connect-AzAccount -AccessToken $token -AccountId "${{ secrets.AZURE_CLIENT_ID }}"
+
+  #         ./armTemplate/PrePostDeploymentScript.ps1 `
+  #           -ArmTemplate "./armTemplate/ARMTemplateForFactory.json" `
+  #           -ResourceGroupName "${{ env.RESOURCE_GROUP_NAME }}" `
+  #           -DataFactoryName "${{ env.DATA_FACTORY_NAME }}" `
+  #           -PreDeployment $true `
+  #           -DeleteDeployment $false
+
+  #     - name: Deploy ADF ARM Template (PROD)
+  #       uses: Azure/arm-deploy@v2
+  #       with:
+  #         subscriptionId: ${{ env.SUBSCRIPTION_ID }}
+  #         resourceGroupName: ${{ env.RESOURCE_GROUP_NAME }}
+  #         template: ./armTemplate/ARMTemplateForFactory.json
+  #         parameters: ./armTemplate/ARMTemplateParametersForFactory.json
+  #         deploymentMode: Incremental
+  #         deploymentName: ADF-PROD-Deploy-${{ github.run_number }}
+
+  #     - name: Run Post-Deployment Script (Start Triggers)
+  #       shell: pwsh
+  #       run: |
+  #         $token = az account get-access-token --resource-type arm --query accessToken -o tsv
+  #         Connect-AzAccount -AccessToken $token -AccountId "${{ secrets.AZURE_CLIENT_ID }}"
+
+  #         ./armTemplate/PrePostDeploymentScript.ps1 `
+  #           -ArmTemplate "./armTemplate/ARMTemplateForFactory.json" `
+  #           -ResourceGroupName "${{ env.RESOURCE_GROUP_NAME }}" `
+  #           -DataFactoryName "${{ env.DATA_FACTORY_NAME }}" `
+  #           -PreDeployment $false `
+  #           -DeleteDeployment $false
+  #       env:
+  #         AZURE_SUBSCRIPTION_ID: ${{ env.SUBSCRIPTION_ID }}
