@@ -119,8 +119,6 @@ jobs:
             -DataFactoryName "${{ env.DATA_FACTORY_NAME }}" `
             -PreDeployment $false `
             -DeleteDeployment $false
-        env:
-          AZURE_SUBSCRIPTION_ID: ${{ env.SUBSCRIPTION_ID }}            
 
   cd-deploy-prd:
     if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
@@ -144,6 +142,13 @@ jobs:
         with:
           name: ArmTemplates
           path: ./armTemplate
+
+      # === Copy Prod-specific parameter file ===
+      - name: Prepare Prod Parameter File
+        run: |
+          mkdir -p ./armTemplate
+          cp .github/workflows/parameters/ARMTemplateParametersForFactory.prod.json ./armTemplate/ARMTemplateParametersForFactory.prod.json
+          echo "✅ Using Prod-specific parameter file"
 
       - name: Azure Login (for ARM deploy)
         uses: azure/login@v2
@@ -171,7 +176,7 @@ jobs:
           subscriptionId: ${{ env.SUBSCRIPTION_ID }}
           resourceGroupName: ${{ env.RESOURCE_GROUP_NAME }}
           template: ./armTemplate/ARMTemplateForFactory.json
-          parameters: ./armTemplate/ARMTemplateParametersForFactory.json
+          parameters: ./armTemplate/ARMTemplateParametersForFactory.prod.json   # ← Prod file
           deploymentMode: Incremental
           deploymentName: ADF-PROD-Deploy-${{ github.run_number }}
 
@@ -187,5 +192,3 @@ jobs:
             -DataFactoryName "${{ env.DATA_FACTORY_NAME }}" `
             -PreDeployment $false `
             -DeleteDeployment $false
-  #       env:
-  #         AZURE_SUBSCRIPTION_ID: ${{ env.SUBSCRIPTION_ID }}
