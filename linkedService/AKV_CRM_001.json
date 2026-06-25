@@ -1,0 +1,10 @@
+{
+	"name": "AKV_CRM_001",
+	"properties": {
+		"annotations": [],
+		"type": "AzureKeyVault",
+		"typeProperties": {
+			"baseUrl": "https://kv-cic-crm-dev.vault.azure.net/"
+		}
+	}
+}
