@@ -1,46 +1,36 @@
 {
-    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#",
-    "contentVersion": "1.0.0.0",
-    "parameters": {
-        "factoryName": {
-            "value": "adf-cic-crm-prd-001"
-        },
-        "PSQL_CRM_APP_properties_typeProperties_server": {
-            "value": "pg-cic-crm-dev-01.postgres.database.azure.com"
-        },
-        "PSQL_CRM_APP_properties_typeProperties_database": {
-            "value": "@{linkedService().database_name}"
-        },
-        "PSQL_CRM_APP_properties_typeProperties_username": {
-            "value": "cic_crm_pg_admin"
-        },
-        "AKV_CRM_001_properties_typeProperties_baseUrl": {
-            "value": "https://kv-cic-crm-dev.vault.azure.net/"
-        },
-        "STA_CRM_001_properties_typeProperties_serviceEndpoint": {
-            "value": "https://staciccrmdev001.blob.core.windows.net/"
-        },
-        "MPE-PSQL_CRM_001_properties_privateLinkResourceId": {
-            "value": "/subscriptions/2c349f16-c9e8-4662-b25b-453d175bee12/resourceGroups/rg-cic-crm/providers/Microsoft.DBforPostgreSQL/flexibleServers/pg-cic-crm-dev-01"
-        },
-        "MPE-PSQL_CRM_001_properties_groupId": {
-            "value": "postgresqlServer"
-        },
-        "MPE-PSQL_CRM_001_properties_fqdns": {
-            "value": [
-                "pg-cic-crm-dev-01.postgres.database.azure.com"
-            ]
-        },
-        "MPE-STA_CRM_001_properties_privateLinkResourceId": {
-            "value": "/subscriptions/2c349f16-c9e8-4662-b25b-453d175bee12/resourceGroups/rg-cic-crm/providers/Microsoft.Storage/storageAccounts/staciccrmdev001"
-        },
-        "MPE-STA_CRM_001_properties_groupId": {
-            "value": "blob"
-        },
-        "MPE-STA_CRM_001_properties_fqdns": {
-            "value": [
-                "staciccrmdev001.blob.core.windows.net"
-            ]
-        }
+  "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "factoryName": {
+      "value": "adf-cic-crm-prd-001"
+    },
+    "AKV_CRM_001_properties_typeProperties_baseUrl": {
+      "value": "https://kv-cic-crm-prd.vault.azure.net/"
+    },
+    "PSQL_CRM_APP_properties_typeProperties_server": {
+      "value": "pg-cic-crm-prd-01.postgres.database.azure.com"
+    },
+    "PSQL_CRM_APP_properties_typeProperties_database": {
+      "value": "@{linkedService().database_name}"
+    },
+    "PSQL_CRM_APP_properties_typeProperties_username": {
+      "value": "cic_crm_pg_admin"
+    },
+    "STA_CRM_001_properties_typeProperties_serviceEndpoint": {
+      "value": "https://staciccrmprd001.blob.core.windows.net/"
+    },
+    "MPE-PSQL_CRM_001_properties_privateLinkResourceId": {
+      "value": "/subscriptions/2c349f16-c9e8-4662-b25b-453d175bee12/resourceGroups/rg-cic-crm/providers/Microsoft.DBforPostgreSQL/flexibleServers/pg-cic-crm-prd-01"
+    },
+    "MPE-PSQL_CRM_001_properties_groupId": {
+      "value": "postgresqlServer"
+    },
+    "MPE-STA_CRM_001_properties_privateLinkResourceId": {
+      "value": "/subscriptions/2c349f16-c9e8-4662-b25b-453d175bee12/resourceGroups/rg-cic-crm/providers/Microsoft.Storage/storageAccounts/staciccrmprd001"
+    },
+    "MPE-STA_CRM_001_properties_groupId": {
+      "value": "blob"
     }
+  }
 }
