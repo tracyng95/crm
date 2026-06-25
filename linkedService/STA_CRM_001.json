@@ -1,11 +1,10 @@
 {
-	"name": "LS_ADLS_staciccrmdev001",
-	"type": "Microsoft.DataFactory/factories/linkedservices",
+	"name": "STA_CRM_001",
 	"properties": {
 		"annotations": [],
 		"type": "AzureBlobStorage",
 		"typeProperties": {
-			"serviceEndpoint": "https://staciccrmdev001.blob.core.windows.net",
+			"serviceEndpoint": "https://staciccrmdev001.blob.core.windows.net/",
 			"accountKind": "StorageV2"
 		},
 		"connectVia": {

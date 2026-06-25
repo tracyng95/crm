@@ -1,10 +1,7 @@
 {
-	"name": "MPE-staciccrmdev001",
+	"name": "MPE-STA_CRM_001",
 	"properties": {
 		"privateLinkResourceId": "/subscriptions/2c349f16-c9e8-4662-b25b-453d175bee12/resourceGroups/rg-cic-crm/providers/Microsoft.Storage/storageAccounts/staciccrmdev001",
-		"groupId": "blob",
-		"fqdns": [
-			"staciccrmdev001.blob.core.windows.net"
-		]
+		"groupId": "blob"
 	}
 }

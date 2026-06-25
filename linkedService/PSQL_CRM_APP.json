@@ -1,0 +1,35 @@
+{
+	"name": "PSQL_CRM_APP",
+	"properties": {
+		"parameters": {
+			"database_name": {
+				"type": "string",
+				"defaultValue": "crm"
+			}
+		},
+		"annotations": [],
+		"type": "AzurePostgreSql",
+		"version": "2.0",
+		"typeProperties": {
+			"server": "pg-cic-crm-dev-01.postgres.database.azure.com",
+			"port": "5432",
+			"database": "@{linkedService().database_name}",
+			"sslMode": 2,
+			"username": "cic_crm_pg_admin",
+			"password": {
+				"type": "AzureKeyVaultSecret",
+				"store": {
+					"referenceName": "AKV_CRM_001",
+					"type": "LinkedServiceReference"
+				},
+				"secretName": "POSTGRES-PASSWORD"
+			},
+			"authenticationType": "Basic"
+		},
+		"connectVia": {
+			"referenceName": "ManagedIntegrationRuntime",
+			"type": "IntegrationRuntimeReference"
+		}
+	},
+	"type": "Microsoft.DataFactory/factories/linkedservices"
+}

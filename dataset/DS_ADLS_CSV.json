@@ -2,7 +2,7 @@
 	"name": "DS_ADLS_CSV",
 	"properties": {
 		"linkedServiceName": {
-			"referenceName": "LS_ADLS_staciccrmdev001",
+			"referenceName": "STA_CRM_001",
 			"type": "LinkedServiceReference"
 		},
 		"parameters": {
