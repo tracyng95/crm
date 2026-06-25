@@ -13,7 +13,7 @@
 		"typeProperties": {
 			"server": "pg-cic-crm-dev-01.postgres.database.azure.com",
 			"port": "5432",
-			"database": "crm",
+			"database": "@{linkedService().database_name}",
 			"sslMode": 2,
 			"username": "cic_crm_pg_admin",
 			"password": {
