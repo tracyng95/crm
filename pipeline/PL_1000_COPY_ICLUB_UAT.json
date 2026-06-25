@@ -60,9 +60,9 @@
 						"referenceName": "DS_PSQL_CRM",
 						"type": "DatasetReference",
 						"parameters": {
-							"database_name": "iclub",
-							"schema_name": "landing",
-							"table_name": "members"
+							"database_name": "crm",
+							"schema_name": "iclub",
+							"table_name": "r_members"
 						}
 					}
 				]
@@ -125,9 +125,9 @@
 						"referenceName": "DS_PSQL_CRM",
 						"type": "DatasetReference",
 						"parameters": {
-							"database_name": "iclub",
-							"schema_name": "landing",
-							"table_name": "members"
+							"database_name": "crm",
+							"schema_name": "iclub",
+							"table_name": "r_member_cpd"
 						}
 					}
 				]
@@ -184,9 +184,9 @@
 						"referenceName": "DS_PSQL_CRM",
 						"type": "DatasetReference",
 						"parameters": {
-							"database_name": "iclub",
-							"schema_name": "landing",
-							"table_name": "members"
+							"database_name": "crm",
+							"schema_name": "iclub",
+							"table_name": "r_hashtag"
 						}
 					}
 				]
