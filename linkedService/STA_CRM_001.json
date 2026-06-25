@@ -1,0 +1,15 @@
+{
+	"name": "STA_CRM_001",
+	"properties": {
+		"annotations": [],
+		"type": "AzureBlobStorage",
+		"typeProperties": {
+			"serviceEndpoint": "https://staciccrmdev001.blob.core.windows.net/",
+			"accountKind": "StorageV2"
+		},
+		"connectVia": {
+			"referenceName": "ManagedIntegrationRuntime",
+			"type": "IntegrationRuntimeReference"
+		}
+	}
+}
