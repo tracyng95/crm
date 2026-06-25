@@ -1,0 +1,521 @@
+{
+	"name": "PL_1000_COPY_ICLUB_UAT",
+	"properties": {
+		"activities": [
+			{
+				"name": "Members",
+				"type": "Copy",
+				"dependsOn": [
+					{
+						"activity": "Hashtag - Interest",
+						"dependencyConditions": [
+							"Completed"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "AzurePostgreSqlSource",
+						"partitionOption": "None",
+						"queryTimeout": "02:00:00"
+					},
+					"sink": {
+						"type": "AzurePostgreSqlSink",
+						"writeBatchSize": 1000000,
+						"writeBatchTimeout": "00:30:00",
+						"preCopyScript": "truncate table iclub.r_members;",
+						"writeMethod": "BulkInsert"
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"typeConversion": true,
+						"typeConversionSettings": {
+							"allowDataTruncation": true,
+							"treatBooleanAsNumber": false
+						}
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "DS_PSQL_CRM",
+						"type": "DatasetReference",
+						"parameters": {
+							"database_name": "iclub",
+							"schema_name": "raw",
+							"table_name": "r_members"
+						}
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "DS_PSQL_CRM",
+						"type": "DatasetReference",
+						"parameters": {
+							"database_name": "iclub",
+							"schema_name": "landing",
+							"table_name": "members"
+						}
+					}
+				]
+			},
+			{
+				"name": "MemberCPD",
+				"type": "Copy",
+				"dependsOn": [
+					{
+						"activity": "Members",
+						"dependencyConditions": [
+							"Completed"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "AzurePostgreSqlSource",
+						"partitionOption": "None",
+						"queryTimeout": "02:00:00"
+					},
+					"sink": {
+						"type": "AzurePostgreSqlSink",
+						"writeBatchSize": 1000000,
+						"writeBatchTimeout": "00:30:00",
+						"preCopyScript": "truncate table iclub.r_member_cpd;",
+						"writeMethod": "BulkInsert"
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"typeConversion": true,
+						"typeConversionSettings": {
+							"allowDataTruncation": true,
+							"treatBooleanAsNumber": false
+						}
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "DS_PSQL_CRM",
+						"type": "DatasetReference",
+						"parameters": {
+							"database_name": "iclub",
+							"schema_name": "raw",
+							"table_name": "r_member_cpd"
+						}
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "DS_PSQL_CRM",
+						"type": "DatasetReference",
+						"parameters": {
+							"database_name": "iclub",
+							"schema_name": "landing",
+							"table_name": "members"
+						}
+					}
+				]
+			},
+			{
+				"name": "Hashtag - Interest",
+				"type": "Copy",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "AzurePostgreSqlSource",
+						"query": "select * from raw.r_hashtag\nwhere (\"IsForCorpMember\" = True OR \"IsForIndivMember\" = True) and \"Status\" = True;",
+						"partitionOption": "None",
+						"queryTimeout": "02:00:00"
+					},
+					"sink": {
+						"type": "AzurePostgreSqlSink",
+						"writeBatchSize": 1000000,
+						"writeBatchTimeout": "00:30:00",
+						"preCopyScript": "truncate table iclub.r_hashtag;",
+						"writeMethod": "BulkInsert"
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"typeConversion": true,
+						"typeConversionSettings": {
+							"allowDataTruncation": true,
+							"treatBooleanAsNumber": false
+						}
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "DS_PSQL_CRM",
+						"type": "DatasetReference",
+						"parameters": {
+							"database_name": "iclub",
+							"schema_name": "raw",
+							"table_name": "r_hashtag"
+						}
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "DS_PSQL_CRM",
+						"type": "DatasetReference",
+						"parameters": {
+							"database_name": "iclub",
+							"schema_name": "landing",
+							"table_name": "members"
+						}
+					}
+				]
+			},
+			{
+				"name": "Hashtag - Interest_copy1",
+				"type": "Copy",
+				"state": "Inactive",
+				"onInactiveMarkAs": "Succeeded",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "SqlServerSource",
+						"additionalColumns": [
+							{
+								"name": "adf_datetime",
+								"value": {
+									"value": "@convertFromUtc(utcNow(),'China Standard Time' )",
+									"type": "Expression"
+								}
+							}
+						],
+						"sqlReaderQuery": "SELECT * FROM dbo.Hashtag\nWHERE IsForCorpMember = 1 OR IsForIndivMember = 1;",
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"sink": {
+						"type": "AzurePostgreSqlSink",
+						"writeBatchSize": 1000000,
+						"writeBatchTimeout": "00:30:00",
+						"preCopyScript": "truncate table iclub.s_hashtag;",
+						"writeMethod": "BulkInsert"
+					},
+					"enableStaging": false
+				},
+				"outputs": [
+					{
+						"referenceName": "DS_PSQL_CRM",
+						"type": "DatasetReference"
+					}
+				]
+			},
+			{
+				"name": "Script-dim_salute_type",
+				"type": "Script",
+				"dependsOn": [
+					{
+						"activity": "MemberCPD",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"linkedServiceName": {
+					"referenceName": "PSQL_CRM_APP",
+					"type": "LinkedServiceReference",
+					"parameters": {
+						"database_name": "crm"
+					}
+				},
+				"typeProperties": {
+					"scripts": [
+						{
+							"type": "Query",
+							"text": "\nTRUNCATE TABLE iclub.dim_salute_type;\nINSERT INTO iclub.dim_salute_type (id, code, name)\nSELECT \n    a.id,\n    v.code,\n    v.name\nFROM (VALUES \n    ('0', '(Please select)'),\n    ('1', 'Ir'),\n    ('2', 'Sr'),\n    ('3', 'Ar.'),\n    ('4', 'Prof.'),\n    ('5', 'Dr.'),\n    ('6', 'Mr.'),\n    ('7', 'Mrs.'),\n    ('8', 'Ms.'),\n    ('9', 'Miss')\n) AS v(code, name)\nLEFT JOIN app.dim_title AS a \n    ON a.name = v.name\nON CONFLICT (code) DO NOTHING;"
+						}
+					],
+					"scriptBlockExecutionTimeout": "02:00:00"
+				}
+			},
+			{
+				"name": "Script-dim_account_status",
+				"type": "Script",
+				"dependsOn": [
+					{
+						"activity": "Script-dim_salute_type",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"linkedServiceName": {
+					"referenceName": "PSQL_CRM_APP",
+					"type": "LinkedServiceReference",
+					"parameters": {
+						"database_name": "crm"
+					}
+				},
+				"typeProperties": {
+					"scripts": [
+						{
+							"type": "Query",
+							"text": "TRUNCATE TABLE iclub.dim_account_status;\n\nINSERT INTO\n    iclub.dim_account_status (id, code, name)\nSELECT a.id, v.code, v.name\nFROM (VALUES\n    ('0', 'Pending'),\n    ('1', 'Active'),\n    ('2', 'Expired'),\n    ('3', 'Inactive')\n    ) AS v (code, name)\n    JOIN app.dim_account_status AS a ON a.name = v.name\nON CONFLICT (code) DO NOTHING;"
+						}
+					],
+					"scriptBlockExecutionTimeout": "02:00:00"
+				}
+			},
+			{
+				"name": "Script-dim_preferred_language",
+				"type": "Script",
+				"dependsOn": [
+					{
+						"activity": "Script-dim_account_status",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"linkedServiceName": {
+					"referenceName": "PSQL_CRM_APP",
+					"type": "LinkedServiceReference",
+					"parameters": {
+						"database_name": "crm"
+					}
+				},
+				"typeProperties": {
+					"scripts": [
+						{
+							"type": "Query",
+							"text": "\nTRUNCATE TABLE iclub.dim_preferred_language;\n\nINSERT INTO\n    iclub.dim_preferred_language (id, code, name)\nSELECT a.id, v.code, v.name\nFROM (VALUES     \n    ('en-hk', 'English'),\n    ('zh-hk', 'Chinese (Traditional)'),\n    ('zh-cn', 'Chinese (Simplified)')\n    ) AS v (code, name)\n    JOIN app.dim_language AS a ON a.name = v.name\nON CONFLICT (code) DO NOTHING;"
+						}
+					],
+					"scriptBlockExecutionTimeout": "02:00:00"
+				}
+			},
+			{
+				"name": "Script-dim_organisation_nature_category",
+				"type": "Script",
+				"dependsOn": [
+					{
+						"activity": "Script-dim_preferred_language",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"linkedServiceName": {
+					"referenceName": "PSQL_CRM_APP",
+					"type": "LinkedServiceReference",
+					"parameters": {
+						"database_name": "crm"
+					}
+				},
+				"typeProperties": {
+					"scripts": [
+						{
+							"type": "Query",
+							"text": "TRUNCATE TABLE iclub.dim_organisation_nature_category;\n\nINSERT INTO\n    iclub.dim_organisation_nature_category (id, code, name)\nSELECT a.id, v.code, v.name\nFROM (VALUES     \n    ('1', 'Academic Institution'),\n    ('2', 'Project Client (Developer/Estate Office/NGO/Statutory Body)'),\n    ('3', 'Consultant'),\n    ('4', 'Contractor'),\n    ('5', 'Government'),\n    ('6', 'Manufacturer/Supplier/Startup'),\n    ('7', 'Professional Body'),\n    ('8', 'Property Management Company'),\n    ('9', 'Research Body'),\n    ('10', 'Trade Association'),\n    ('11', 'Utility Organisation'),\n    ('12', 'Freelance'),\n    ('13', 'Others')\n    ) AS v (code, name)\n    JOIN app.dim_category AS a ON a.name = v.name\nON CONFLICT (code) DO NOTHING;"
+						}
+					],
+					"scriptBlockExecutionTimeout": "02:00:00"
+				}
+			},
+			{
+				"name": "Script-dim_organisation_nature_subcategory",
+				"type": "Script",
+				"dependsOn": [
+					{
+						"activity": "Script-dim_organisation_nature_category",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"linkedServiceName": {
+					"referenceName": "PSQL_CRM_APP",
+					"type": "LinkedServiceReference",
+					"parameters": {
+						"database_name": "crm"
+					}
+				},
+				"typeProperties": {
+					"scripts": [
+						{
+							"type": "Query",
+							"text": "\n\nTRUNCATE TABLE iclub.dim_organisation_nature_subcategory;\n\nINSERT INTO\n    iclub.dim_organisation_nature_subcategory (id,code, parent_code, name,category_id)\nSELECT a.id, v.code, v.parent_Code, v.name,c.id\nFROM (VALUES\n    ('101', '1', 'The Chinese University of Hong Kong'),\n    ('102', '1', 'Chu Hai College of Higher Education'),\n    ('103', '1', 'City University of Hong Kong'),\n    ('104', '1', 'The Hong Kong Polytechnic University'),\n    ('105', '1', 'The University of Hong Kong'),\n    ('106', '1', 'Hong Kong University of Science and Technology'),\n    ('107', '1', 'Technological and Higher Education Institute of Hong Kong'),\n    ('108', '1', 'Vocational Training Council'),\n    ('109', '1', 'Local - please indicate name'),\n    ('110', '1', 'Overseas - please indicate name'),\n    ('201', '2', 'Developer - please indicate name'),\n    ('202', '2', 'Estate Office (e.g. University Estate Office) - please indicate name'),\n    ('203', '2', 'NGO (e.g. HKCSS) - please indicate name'),\n    ('204', '2', 'Statutory Body - please indicate name'),\n    ('205', '2', 'Airport Authority Hong Kong'),\n    ('206', '2', 'Hong Kong Housing Authority'),\n    ('207', '2', 'Hong Kong Housing Society'),\n    ('208', '2', 'Hong Kong Cyberport'),\n    ('209', '2', 'Hong Kong Science and Technology Parks Corporation'),\n    ('210', '2', 'Hospital Authority'),\n    ('211', '2', 'MTR Corporation Limited'),\n    ('212', '2', 'University Estate Office - please indicate university'),\n    ('213', '2', 'Urban Renewal Authority'),\n    ('214', '2', 'West Kowloon Cultural District Authority'),\n    ('299', '2', 'Others - please indicate'),\n    ('301', '3', 'Architectural'),\n    ('302', '3', 'Building'),\n    ('303', '3', 'Building Services'),\n    ('304', '3', 'Building Surveying'),\n    ('305', '3', 'Building Information Modelling'),\n    ('306', '3', 'Civil Infrastructure and Development'),\n    ('307', '3', 'Drainage and Sewerage'),\n    ('308', '3', 'E&M'),\n    ('309', '3', 'Environmental'),\n    ('310', '3', 'Geotechnical and Slope'),\n    ('311', '3', 'Landscape Architectural'),\n    ('312', '3', 'Project Management'),\n    ('313', '3', 'Quantity Surveying'),\n    ('314', '3', 'Roads and Associated Structures'),\n    ('315', '3', 'Town Planning'),\n    ('316', '3', 'Traffic and Transport'),\n    ('317', '3', 'Structural Engineering'),\n    ('318', '3', 'Waterworks'),\n    ('319', '3', 'Firm of AP/TCP or individuals'),\n    ('320', '3', 'Firm of RSE/TCP or individual'),\n    ('321', '3', 'Firm of RGE/TCP or individual'),\n    ('322', '3', 'Firm of AS or individual'),\n    ('323', '3', 'Multiple disciplines'),\n    ('399', '3', 'Others - please indicate'),\n    ('401', '4', 'Buildings'),\n    ('402', '4', 'Port Works'),\n    ('403', '4', 'Roads and Drainage'),\n    ('404', '4', 'Site Formation'),\n    ('405', '4', 'Waterworks'),\n    ('406', '4', 'BD Registered General Building Contractor - please indicate category'),\n    ('407', '4', 'BD Registered Specialist Contractor - please indicate category'),\n    ('408', '4', 'CIC Registered Specialist Trade Contractor - please indicate category'),\n    ('409', '4', 'CIC Registered Subcontractor - please indicate category'),\n    ('410', '4', 'Multiple sectors'),\n    ('499', '4', 'Others - please indicate'),\n    ('501', '5', 'Policy Bureau (e.g. DEVB, ENB, THB)'),\n    ('502', '5', 'Department with project client/project management function (e.g. ArchSD, CEDD, DSD, EMSD, HyD, WSD)'),\n    ('503', '5', 'Department with regulatory function (e.g. BD, CEDD (GEO), EMSD, EPD, FSD, PlanD, LandsD, TD, WSD)'),\n    ('599', '5', 'Others - please indicate'),\n    ('601', '6', 'BIM products'),\n    ('602', '6', 'Building & civil construction materials'),\n    ('603', '6', 'Curtain wall'),\n    ('604', '6', 'Digitalisation products/Digital solutions'),\n    ('605', '6', 'E&M products'),\n    ('606', '6', 'MiC modules'),\n    ('607', '6', 'Precast concrete products'),\n    ('608', '6', 'Prefabricated steel rebar products'),\n    ('609', '6', 'Prefabricated MEP products'),\n    ('610', '6', 'System formwork'),\n    ('699', '6', 'Others - please indicate'),\n    ('701', '7', 'Hong Kong Institute of Architects - please indicate division'),\n    ('702', '7', 'Hong Kong Institution of Engineers - please indicate division'),\n    ('703', '7', 'Hong Kong Institute of Surveyors - please indicate division'),\n    ('704', '7', 'Institution of Civil Engineers'),\n    ('705', '7', 'Royal Institute of British Architects'),\n    ('706', '7', 'Royal Institution of Chartered Surveyors'),\n    ('707', '7', 'Hong Kong Institute of Building Information Modelling'),\n    ('708', '7', 'Hong Kong Institute of Construction Managers'),\n    ('709', '7', 'Institute of Materials, Minerals and Mining'),\n    ('799', '7', 'Others - please indicate'),\n    ('901', '9', 'Nano and Advanced Materials Institute (NAMI)'),\n    ('902', '9', 'The Centre for Innovation in Construction & Infrastructure Development (CICID)'),\n    ('903', '9', 'Logistics and Supply Chain MultiTech R&D Centre (LSCM)'),\n    ('904', '9', 'Hong Kong Applied Science and Technology Research Institute (ASTRI)'),\n    ('999', '9', 'Others - please indicate'),\n    ('1001', '10', 'Hong Kong Construction Association'),\n    ('1002', '10', 'Hong Kong General Building Contractors Association'),\n    ('1003', '10', 'Hong Kong Construction Materials Association'),\n    ('1004', '10', 'The HK Federation of Electrical & Mechanical Contractors'),\n    ('1005', '10', 'Hong Kong Construction Sub-Contractors Association'),\n    ('1006', '10', 'Association of Architectural Practices'),\n    ('1007', '10', 'Association of Consulting Engineers of Hong Kong'),\n    ('1008', '10', 'Association of Consultant Quantity Surveyors'),\n    ('1009', '10', 'The Hong Kong Air Conditioning and Refrigeration Association'),\n    ('1010', '10', 'Association of Geotechnical and Geoenvironmental Specialists (Hong Kong)'),\n    ('1099', '10', 'Others - please indicate'),\n    ('1101', '11', 'HK Electric'),\n    ('1102', '11', 'CLP Group'),\n    ('1103', '11', 'Hong Kong and China Gas Company Limited'),\n    ('1104', '11', 'Drainage Services Department'),\n    ('1105', '11', 'Water Supplies Department'),\n    ('1106', '11', 'Telecom company'),\n    ('1199', '11', 'Others - please indicate'),\n    ('1201', '12', 'AP - Authorized Person'),\n    ('1202', '12', 'RSE - Registered Structural Engineer'),\n    ('1203', '12', 'RGE - Registered Geotechnical Engineer'),\n    ('1204', '12', 'AS - Authorized Surveyor'),\n    ('1205', '12', 'TCP - Technically Competent Person'),\n    ('1206', '12', 'RSO - Registered Safety Officer'),\n    ('1301', '13', 'Others - please indicate')\n    ) AS v (code,parent_code, name)\n    JOIN app.dim_subcategory AS a ON a.name = v.name\n    LEFT JOIN iclub.dim_organisation_nature_category as c on c.code =v.parent_code\nON CONFLICT (code) DO NOTHING;\n"
+						}
+					],
+					"scriptBlockExecutionTimeout": "02:00:00"
+				}
+			},
+			{
+				"name": "Script-r_hashtag",
+				"type": "Script",
+				"dependsOn": [
+					{
+						"activity": "Script-dim_organisation_nature_subcategory",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"linkedServiceName": {
+					"referenceName": "PSQL_CRM_APP",
+					"type": "LinkedServiceReference",
+					"parameters": {
+						"database_name": "crm"
+					}
+				},
+				"typeProperties": {
+					"scripts": [
+						{
+							"type": "Query",
+							"text": "\nTRUNCATE TABLE iclub.r_hashtag_uat;\nINSERT INTO iclub.r_hashtag_uat\nSELECT \n    a.id as id_uuid,\n    \"Id\",\n    \"EnTitle\",\n    \"TcTitle\",\n    \"ScTitle\",\n    \"IsForCorpMember\",\n    \"IsForIndivMember\",\n    \"IsForExpertCorner\",\n    \"IsForEvent\",\n    \"IsForExhibit\",\n    \"Sequence\",\n    \"Status\",\n    \"CreatedBy\",\n    \"CreatedDate\",\n    \"UpdatedBy\",\n    \"UpdatedDate\", \n     adf_datetime\nFROM iclub.r_hashtag as V\nLEFT JOIN app.dim_preference AS a \non a.name = V.\"EnTitle\"\nwhere V.\"Status\"= True\nand a.id is not null;\n\n\nTRUNCATE TABLE iclub.r_hashtag;\nINSERT INTO iclub.r_hashtag\nselect * from iclub.r_hashtag_uat;\n"
+						}
+					],
+					"scriptBlockExecutionTimeout": "02:00:00"
+				}
+			},
+			{
+				"name": "Azure Function - Members",
+				"type": "AzureFunctionActivity",
+				"state": "Inactive",
+				"onInactiveMarkAs": "Succeeded",
+				"dependsOn": [
+					{
+						"activity": "Script-r_hashtag",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"functionName": "iclub_member",
+					"body": {
+						"value": "@string('{}')",
+						"type": "Expression"
+					},
+					"method": "POST"
+				}
+			},
+			{
+				"name": "Azure Function - MemberCPD",
+				"type": "AzureFunctionActivity",
+				"state": "Inactive",
+				"onInactiveMarkAs": "Succeeded",
+				"dependsOn": [
+					{
+						"activity": "Azure Function - Members",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"functionName": "iclub_membercpd",
+					"body": {
+						"value": "@string('{}')",
+						"type": "Expression"
+					},
+					"method": "POST"
+				}
+			}
+		],
+		"annotations": [],
+		"lastPublishTime": "2026-06-11T18:44:23Z"
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}

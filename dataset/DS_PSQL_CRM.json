@@ -1,8 +1,8 @@
 {
-	"name": "DS_PSQL_CRM_DEV",
+	"name": "DS_PSQL_CRM",
 	"properties": {
 		"linkedServiceName": {
-			"referenceName": "crmpsql_crm_dev",
+			"referenceName": "PSQL_CRM_APP",
 			"type": "LinkedServiceReference",
 			"parameters": {
 				"database_name": {
