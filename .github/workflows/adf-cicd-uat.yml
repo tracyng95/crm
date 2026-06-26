@@ -135,6 +135,7 @@ jobs:
     if: github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && inputs.deploy_prod == true)
     runs-on: ubuntu-latest
     needs: cd-deploy-uat
+    # needs: ci-validate-export
     environment: prod
 
     env:
@@ -159,6 +160,7 @@ jobs:
         run: |
           mkdir -p ./armTemplate
           cp .github/workflows/parameters/ARMTemplateParametersForFactory.prod.json ./armTemplate/ARMTemplateParametersForFactory.prod.json
+          cp .github/workflows/parameters/ARMTemplateForFactory.prod.json ./armTemplate/ARMTemplateForFactory.prod.json
           echo "✅ Using Prod-specific parameter file"
 
       - name: Azure Login (for ARM deploy)
