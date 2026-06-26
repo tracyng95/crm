@@ -1,0 +1,23 @@
+{
+	"name": "FUNC_CRM_002_MEMBERCPD",
+	"properties": {
+		"annotations": [],
+		"type": "AzureFunction",
+		"typeProperties": {
+			"functionAppUrl": "func-cic-crm-dev-002.azurewebsites.net",
+			"authentication": "Anonymous",
+			"functionKey": {
+				"type": "AzureKeyVaultSecret",
+				"store": {
+					"referenceName": "AKV_CRM_001",
+					"type": "LinkedServiceReference"
+				},
+				"secretName": "FUNC-CRM-002-MEMBERCPD"
+			}
+		},
+		"connectVia": {
+			"referenceName": "ManagedIntegrationRuntime",
+			"type": "IntegrationRuntimeReference"
+		}
+	}
+}
