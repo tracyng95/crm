@@ -160,7 +160,7 @@ jobs:
         run: |
           mkdir -p ./armTemplate
           cp .github/workflows/parameters/ARMTemplateParametersForFactory.prod.json ./armTemplate/ARMTemplateParametersForFactory.prod.json
-          cp .github/workflows/parameters/ARMTemplateForFactory.prod.json ./armTemplate/ARMTemplateForFactory.prod.json
+          # cp .github/workflows/parameters/ARMTemplateForFactory.prod.json ./armTemplate/ARMTemplateForFactory.prod.json
           echo "✅ Using Prod-specific parameter file"
 
       - name: Azure Login (for ARM deploy)

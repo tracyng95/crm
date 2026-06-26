@@ -1,12 +1,6 @@
 {
 	"name": "adf-cic-crm-dev-001",
 	"properties": {
-		"globalParameters": {
-			"pSQL": {
-				"type": "string",
-				"value": "pg-cic-crm-dev-01.privatelink.postgres.database.azure.com"
-			}
-		},
 		"trustModeClaimForMi": {
 			"value": "Disabled",
 			"editable": true
