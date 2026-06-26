@@ -3,15 +3,7 @@
   "enableGitComment": true,
   "resources": {
     "managedPrivateEndpoint": {
-      "properties": {
-        "privateLinkResource": {
-          "parameters": {
-            "privateLinkResourceId": true,
-            "groupId": true,
-            "fqdns": true
-          }
-        }
-      }
+      "exclude": true
     }
   }
 }
