@@ -21,13 +21,13 @@
       "value": "https://staciccrmprd001.blob.core.windows.net/"
     },
     "MPE-PSQL_CRM_001_properties_privateLinkResourceId": {
-      "value": "/subscriptions/2c349f16-c9e8-4662-b25b-453d175bee12/resourceGroups/rg-cic-crm/providers/Microsoft.DBforPostgreSQL/flexibleServers/pg-cic-crm-prd-01"
+      "value": "/subscriptions/2c349f16-c9e8-4662-b25b-453d175bee12/resourceGroups/rg-cic-crm-prd/providers/Microsoft.DBforPostgreSQL/flexibleServers/pg-cic-crm-prd-01"
     },
     "MPE-PSQL_CRM_001_properties_groupId": {
       "value": "postgresqlServer"
     },
     "MPE-STA_CRM_001_properties_privateLinkResourceId": {
-      "value": "/subscriptions/2c349f16-c9e8-4662-b25b-453d175bee12/resourceGroups/rg-cic-crm/providers/Microsoft.Storage/storageAccounts/staciccrmprd001"
+      "value": "/subscriptions/2c349f16-c9e8-4662-b25b-453d175bee12/resourceGroups/rg-cic-crm-prd/providers/Microsoft.Storage/storageAccounts/staciccrmprd001"
     },
     "MPE-STA_CRM_001_properties_groupId": {
       "value": "blob"

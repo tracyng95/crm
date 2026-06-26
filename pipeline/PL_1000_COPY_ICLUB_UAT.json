@@ -499,6 +499,10 @@
 						"type": "Expression"
 					},
 					"method": "POST"
+				},
+				"linkedServiceName": {
+					"referenceName": "FUNC_CRM_002_MEMBER",
+					"type": "LinkedServiceReference"
 				}
 			},
 			{
@@ -529,6 +533,10 @@
 						"type": "Expression"
 					},
 					"method": "POST"
+				},
+				"linkedServiceName": {
+					"referenceName": "FUNC_CRM_002_MEMBER",
+					"type": "LinkedServiceReference"
 				}
 			}
 		],
