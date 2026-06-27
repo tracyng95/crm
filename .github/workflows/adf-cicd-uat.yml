@@ -1,8 +1,8 @@
 name: ADF-CI-CD
 
 on:
-  pull_request:
-    branches: [ master ]
+  # pull_request:
+  #   branches: [ master ]
   push:
     branches: [ master ]
   workflow_dispatch:
@@ -192,43 +192,57 @@ jobs:
           parameters: ./armTemplate/ARMTemplateParametersForFactory.prod.json   # ← Prod file
           deploymentMode: Incremental
           deploymentName: ADF-PROD-Deploy-${{ github.run_number }}
-
+          
       - name: Auto-Approve Private Endpoints (Prod)
         shell: pwsh
         run: |
-          Write-Host "Checking and approving pending private endpoints..."
+          Write-Host "=== Auto-Approving Pending Private Endpoints ==="
 
-          # Approve Storage Private Endpoints
-          Write-Host "Checking Storage Account: staciccrmprd001"
-          $storageIds = az network private-endpoint-connection list `
-            --resource-group ${{ env.RESOURCE_GROUP_NAME }} `
-            --name staciccrmprd001 `
-            --query "[?properties.privateLinkServiceConnectionState.status=='Pending'].id" -o tsv
+          # === Storage Account ===
+          Write-Host "`nChecking Storage Account: staciccrmprd001"
+          try {
+            $storagePending = az network private-endpoint-connection list `
+              --resource-group ${{ env.RESOURCE_GROUP_NAME }} `
+              --name staciccrmprd001 `
+              --type Microsoft.Storage/storageAccounts `
+              --query "[?properties.privateLinkServiceConnectionState.status=='Pending'].id" -o tsv 2>$null
 
-          if ($storageIds) {
-            $storageIds | ForEach-Object {
-              Write-Host "Approving Storage endpoint: $_"
-              az network private-endpoint-connection approve --id $_ --description "Approved by GitHub Actions"
+            if ($storagePending) {
+              $storagePending | ForEach-Object {
+                Write-Host "Approving Storage endpoint: $_"
+                az network private-endpoint-connection approve --id $_ --description "Approved by GitHub Actions" --output none
+              }
+              Write-Host "Storage endpoints approved."
+            } else {
+              Write-Host "No pending Storage private endpoints."
             }
-          } else {
-            Write-Host "No pending Storage private endpoints."
+          } catch {
+            Write-Host "No Storage private endpoints found or error occurred (this is usually safe to ignore)."
           }
 
-          # Approve PostgreSQL Private Endpoints
-          Write-Host "Checking PostgreSQL: pg-cic-crm-prd-01"
-          $psqlIds = az network private-endpoint-connection list `
-            --resource-group ${{ env.RESOURCE_GROUP_NAME }} `
-            --name pg-cic-crm-prd-01 `
-            --query "[?properties.privateLinkServiceConnectionState.status=='Pending'].id" -o tsv
+          # === PostgreSQL ===
+          Write-Host "`nChecking PostgreSQL: pg-cic-crm-prd-01"
+          try {
+            $psqlPending = az network private-endpoint-connection list `
+              --resource-group ${{ env.RESOURCE_GROUP_NAME }} `
+              --name pg-cic-crm-prd-01 `
+              --type Microsoft.DBforPostgreSQL/flexibleServers `
+              --query "[?properties.privateLinkServiceConnectionState.status=='Pending'].id" -o tsv 2>$null
 
-          if ($psqlIds) {
-            $psqlIds | ForEach-Object {
-              Write-Host "Approving PostgreSQL endpoint: $_"
-              az network private-endpoint-connection approve --id $_ --description "Approved by GitHub Actions"
+            if ($psqlPending) {
+              $psqlPending | ForEach-Object {
+                Write-Host "Approving PostgreSQL endpoint: $_"
+                az network private-endpoint-connection approve --id $_ --description "Approved by GitHub Actions" --output none
+              }
+              Write-Host "PostgreSQL endpoints approved."
+            } else {
+              Write-Host "No pending PostgreSQL private endpoints."
             }
-          } else {
-            Write-Host "No pending PostgreSQL private endpoints."
+          } catch {
+            Write-Host "No PostgreSQL private endpoints found or error occurred (this is usually safe to ignore)."
           }
+
+          Write-Host "`n=== Private Endpoint Approval Check Completed ==="
 
 
       - name: Run Post-Deployment Script (Start Triggers)
