@@ -196,27 +196,39 @@ jobs:
       - name: Auto-Approve Private Endpoints (Prod)
         shell: pwsh
         run: |
-          Write-Host "Approving Private Endpoints for Storage and PostgreSQL..."
+          Write-Host "Checking and approving pending private endpoints..."
 
           # Approve Storage Private Endpoints
-          az network private-endpoint-connection list `
+          Write-Host "Checking Storage Account: staciccrmprd001"
+          $storageIds = az network private-endpoint-connection list `
             --resource-group ${{ env.RESOURCE_GROUP_NAME }} `
             --name staciccrmprd001 `
-            --resource-type Microsoft.Storage/storageAccounts `
-            --query "[?properties.privateLinkServiceConnectionState.status=='Pending'].id" -o tsv | ForEach-Object {
+            --query "[?properties.privateLinkServiceConnectionState.status=='Pending'].id" -o tsv
+
+          if ($storageIds) {
+            $storageIds | ForEach-Object {
               Write-Host "Approving Storage endpoint: $_"
               az network private-endpoint-connection approve --id $_ --description "Approved by GitHub Actions"
             }
+          } else {
+            Write-Host "No pending Storage private endpoints."
+          }
 
           # Approve PostgreSQL Private Endpoints
-          az network private-endpoint-connection list `
+          Write-Host "Checking PostgreSQL: pg-cic-crm-prd-01"
+          $psqlIds = az network private-endpoint-connection list `
             --resource-group ${{ env.RESOURCE_GROUP_NAME }} `
             --name pg-cic-crm-prd-01 `
-            --resource-type Microsoft.DBforPostgreSQL/flexibleServers `
-            --query "[?properties.privateLinkServiceConnectionState.status=='Pending'].id" -o tsv | ForEach-Object {
+            --query "[?properties.privateLinkServiceConnectionState.status=='Pending'].id" -o tsv
+
+          if ($psqlIds) {
+            $psqlIds | ForEach-Object {
               Write-Host "Approving PostgreSQL endpoint: $_"
               az network private-endpoint-connection approve --id $_ --description "Approved by GitHub Actions"
             }
+          } else {
+            Write-Host "No pending PostgreSQL private endpoints."
+          }
 
 
       - name: Run Post-Deployment Script (Start Triggers)
